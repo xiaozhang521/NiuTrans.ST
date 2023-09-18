@@ -871,3 +871,6 @@ x64/Debug/ZERO_CHECK/ZERO_CHECK.tlog/ZERO_CHECK.lastbuildstate
 x64/Debug/ZERO_CHECK/ZERO_CHECK.vcxproj.FileListAbsolute.txt
 ZERO_CHECK.vcxproj
 ZERO_CHECK.vcxproj.filters
+/.vs
+/build/CMakeFiles
+/out/build/x64-Debug
