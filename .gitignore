@@ -701,7 +701,6 @@ CMakeFiles/NiuTrans.NMT.dir/source/source/tensor/loss/NiuTrans.NMT_generated_Cro
 CMakeFiles/NiuTrans.NMT.dir/source/source/tensor/loss/NiuTrans.NMT_generated_CrossEntropy.cu.obj.RelWithDebInfo.cmake
 CMakeFiles/NiuTrans.NMT.dir/source/source/tensor/loss/vc140.pdb
 CMakeFiles/TargetDirectories.txt
-CMakeLists.txt
 LICENSE
 NiuTrans.NMT.dir/Debug/Adam.obj
 NiuTrans.NMT.dir/Debug/Attention.obj
