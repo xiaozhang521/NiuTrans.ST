@@ -24,9 +24,11 @@
 #include "./nmt/Config.h"
 #include "./nmt/train/Trainer.h"
 #include "./nmt/translate/Translator.h"
+#include "./s2t/S2TModel.h"
 #include "cudnn.h"
 
 using namespace nmt;
+using namespace s2t;
 
 int main(int argc, const char** argv)
 {
@@ -35,43 +37,47 @@ int main(int argc, const char** argv)
 
     if (argc == 0)
         return 1;
-
     /* load configurations */
-    NMTConfig config(argc, argv);
+    //NMTConfig config(argc, argv);
+    S2TModel model;
+    //model.InitModel(config);
+    //Generator generator;
+    //generator.Init(config, model);
+    //generator.generate(); 
+    // 
+    /***********************Old entrance**************************/
+    //srand(config.common.seed);
 
-    srand(config.common.seed);
+    ///* training */
+    //if (strcmp(config.training.trainFN, "") != 0) {
 
-    /* training */
-    if (strcmp(config.training.trainFN, "") != 0) {
+    //    NMTModel model;
+    //    model.InitModel(config);
 
-        NMTModel model;
-        model.InitModel(config);
+    //    Trainer trainer;
+    //    trainer.Init(config, model);
+    //    trainer.Run();
+    //}
 
-        Trainer trainer;
-        trainer.Init(config, model);
-        trainer.Run();
-    }
+    ///* translation */
+    //else if (strcmp(config.translation.inputFN, "") != 0) {
 
-    /* translation */
-    else if (strcmp(config.translation.inputFN, "") != 0) {
+    //    /* disable gradient flow */
+    //    DISABLE_GRAD;
 
-        /* disable gradient flow */
-        DISABLE_GRAD;
+    //    NMTModel model;
+    //    model.InitModel(config);
 
-        NMTModel model;
-        model.InitModel(config);
-
-        Translator translator;
-        translator.Init(config, model);
-        translator.Translate();
-    }
-
-    else {
-        fprintf(stderr, "Thanks for using NiuTrans.NMT! This is an effcient\n");
-        fprintf(stderr, "neural machine translation system. \n\n");
-        fprintf(stderr, "   Run this program with \"-train\" for training!\n");
-        fprintf(stderr, "Or run this program with \"-input\" for translation!\n");
-    }
+    //    Translator translator;
+    //    translator.Init(config, model);
+    //    translator.Translate();
+    //}
+    //else {
+    //    fprintf(stderr, "Thanks for using NiuTrans.NMT! This is an effcient\n");
+    //    fprintf(stderr, "neural machine translation system. \n\n");
+    //    fprintf(stderr, "   Run this program with \"-train\" for training!\n");
+    //    fprintf(stderr, "Or run this program with \"-input\" for translation!\n");
+    //}
 
     return 0;
 }
