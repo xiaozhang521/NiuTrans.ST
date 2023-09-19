@@ -30,7 +30,7 @@
 //#include "submodel/Output.h"
 //#include "submodel/Attention.h"
 #include "../niutensor/train/XModel.h"
-
+using namespace nts;
   /* the s2t namespace */
 namespace s2t
 {

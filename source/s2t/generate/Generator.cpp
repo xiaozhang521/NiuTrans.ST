@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-
  /*
   * $Created by: Yuhao Zhang (yoohao.zhang@gmail.com) 2023-09-19
   */
-#include "S2TModel.h"
-namespace s2t
-{
-    S2TModel::S2TModel()
+
+
+#include "Generator.h"
+
+namespace s2t {
+    Generator::Generator()
     {
 
     }
-    S2TModel::~S2TModel()
+    Generator::~Generator()
     {
 
     }
-
 }

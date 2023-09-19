@@ -25,6 +25,7 @@
 #include "./nmt/train/Trainer.h"
 #include "./nmt/translate/Translator.h"
 #include "./s2t/S2TModel.h"
+#include "./s2t/generate/Generator.h"
 #include "cudnn.h"
 
 using namespace nmt;
@@ -41,11 +42,11 @@ int main(int argc, const char** argv)
     //NMTConfig config(argc, argv);
     S2TModel model;
     //model.InitModel(config);
-    //Generator generator;
+    Generator generator;
     //generator.Init(config, model);
     //generator.generate(); 
     // 
-    /***********************Old entrance**************************/
+    /*****************************Old entrance******************************/
     //srand(config.common.seed);
 
     ///* training */
