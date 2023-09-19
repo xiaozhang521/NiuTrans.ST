@@ -874,3 +874,15 @@ ZERO_CHECK.vcxproj.filters
 /.vs
 /build/CMakeFiles
 /out/build/x64-Debug
+NiuTrans.NMT.dir/Debug/Main.obj
+NiuTrans.NMT.dir/Debug/NiuTrans.ST.tlog/CL.command.1.tlog
+NiuTrans.NMT.dir/Debug/NiuTrans.ST.tlog/CL.read.1.tlog
+NiuTrans.NMT.dir/Debug/NiuTrans.ST.tlog/CL.write.1.tlog
+NiuTrans.NMT.dir/Debug/NiuTrans.ST.tlog/CustomBuild.command.1.tlog
+NiuTrans.NMT.dir/Debug/NiuTrans.ST.tlog/CustomBuild.read.1.tlog
+NiuTrans.NMT.dir/Debug/NiuTrans.ST.tlog/CustomBuild.write.1.tlog
+NiuTrans.NMT.dir/Debug/NiuTrans.ST.tlog/link.command.1.tlog
+NiuTrans.NMT.dir/Debug/NiuTrans.ST.tlog/link.read.1.tlog
+NiuTrans.NMT.dir/Debug/NiuTrans.ST.tlog/link.write.1.tlog
+NiuTrans.NMT.dir/Debug/NiuTrans.ST.tlog/NiuTrans.ST.lastbuildstate
+NiuTrans.NMT.dir/Debug/NiuTrans.ST.tlog/NiuTrans.ST.write.1u.tlog
