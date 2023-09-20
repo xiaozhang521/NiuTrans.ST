@@ -38,7 +38,11 @@ using namespace std;
 namespace nmt 
 {
 
-/* the training or test sample (a pair of utterance and text) */
+/* 
+ * the test sample (a pair of utterance and text which contains the results of ASR and NMT).
+ * the result of NMT(tranlSeq) could be NULL.
+*/
+
 	struct Sample
 	{
 
@@ -51,16 +55,95 @@ namespace nmt
 		/* the sequence of audio (a list of tokens) */
 		IntList* audioSeq;
 
-		/* the sequence of text (a list of tokens) */
-		IntList* txtSeq;
+		/* the sequence of target sentence (a list of tokens) */
+		IntList* tgtSeq;
 
+		/* the sequence of translated sentence (a list of tokens) */
+		IntList* translSeq;
+
+		/* constructor */
+		Sample(IntList* a, IntList* tg, IntList* tr = NULL, int myKey = -1);
+
+		/* de-constructor */
+		~Sample();
 	};
 
 	/* the base class of datasets used in Niutrans.ST*/
 	class AudioDataSetBase : public DataDistributeBase
 	{
 	public:
+		/* frame counter, decided on duration */
+		int frameCounter;
 
+		/* the number of target sequences */
+		int tgtCounter;
+
+		/* the number of translated sequences*/
+		int translCounter;
+
+		/* the buffer of sequences */
+		XList* seqBuf;
+
+		/* the buffer of audio */
+		XList* audioBuf;
+
+		/*the configuration of ST system*/
+		NMTConfig* config; //We will change it to STConfig in furture
+
+	public:
+		/* get the maximum audio sentence length in a range of buffer */
+		int MaxAudioLen(int begin, int end);
+
+		/* get the maximum target sentence length in a range of buffer */
+		int MaxTgtLen(int begin, int end);
+
+		/* get the maximum translated sentence length in a range of buffer */
+		int MaxTranslLen(int begin, int end);
+
+		/* sort the input by audio sentence length (in ascending order) */
+		void SortByAudioLengthAscending();
+
+		/* sort the input by target sentence length (in ascending order) */
+		void SortByTgtLengthAscending();
+
+		/* sort the input by translated sentence length (in ascending order) */
+		void SortByTranslLengthAscending();
+
+		/* sort the input by audio sentence length (in descending order) */
+		void SortByAudioLengthDescending();
+
+		/* sort the input by target sentence length (in descending order) */
+		void SortByTgtLengthDescending();
+
+		/* sort the input by translated sentence length (in descending order) */
+		void SortByTranslLengthDescending();
+
+		/* release the samples in a buffer */
+		void ClearBuf();
+
+	public:
+		/* constructor */
+		AudioDataSetBase();
+
+		/* load the samples into the buffer (a list) */
+		virtual
+			bool LoadBatchToBuf() = 0;
+
+		/* initialization function */
+		virtual
+			void Init(NMTConfig& myConfig, bool isTraining) = 0;
+
+		/* load a sample from the file stream  */
+		virtual
+			Sample* LoadSample() = 0;
+
+		/* load a mini-batch from the buffer */
+		virtual
+			bool GetBatchSimple(XList* inputs, XList* golds = NULL) = 0;
+
+		/* de-constructor */
+		~AudioDataSetBase();
 	};
-}
+
+} /* end of nmt namespace */
 #endif /* __AUDIO_DATASET_H__ */
