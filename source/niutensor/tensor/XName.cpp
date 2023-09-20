@@ -61,6 +61,8 @@ const char * GetOPName(int type)
             return "M_NOTEQUAL";
         else if (type == MATH_CLIP)
             return "M_CLIP";
+        else if (type == MATH_CONV1D)
+            return "M_CONV1D";
         else if (type == MATH_DIV)
             return "M_DIV";
         else if (type == MATH_DIVDIM)
