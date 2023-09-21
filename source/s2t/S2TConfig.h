@@ -48,13 +48,16 @@ namespace s2t
     public:
         /* load configuration from the command */
         void Load(int argsNum, const char** args);
+        /* print configurationle */
+        void showConfig();
     };
 
     /* inference configuration */
     class InferenceConfig : public TranslationConfig
     {
     public:
-        
+        /* print configurationle */
+        void showConfig();
     };
 
 
@@ -79,7 +82,8 @@ namespace s2t
         S2TConfig(int argc, const char** argv);
         /* load configuration from a file */
         int LoadFromFile(const char* configFN, char** args);
-
+        /* print configurationle */
+        void showConfig();
     };
 } /* end of the s2r namespace */
 
