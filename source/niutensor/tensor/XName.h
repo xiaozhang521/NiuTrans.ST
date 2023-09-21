@@ -50,7 +50,8 @@ namespace nts { // namespace nts(NiuTrans.Tensor)
 #define MATH_NOTEQUAL           MATH_EQUAL + 1
 
 #define MATH_CLIP               MATH_NOTEQUAL + 1
-#define MATH_DIV                MATH_CLIP + 1
+#define MATH_CONV1D             MATH_CLIP + 1
+#define MATH_DIV                MATH_CONV1D + 1
 #define MATH_DIVDIM             MATH_DIV + 1
 #define MATH_MASK               MATH_DIVDIM + 1
 #define MATH_MATRIXMUL          MATH_MASK + 1

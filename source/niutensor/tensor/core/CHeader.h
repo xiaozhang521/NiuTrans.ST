@@ -26,6 +26,7 @@
 
 #include "../XTensor.h"
 
+#include "arithmetic/Conv1D.h"
 #include "arithmetic/Div.h"
 #include "arithmetic/DivDim.h"
 #include "arithmetic/Mask.h"
