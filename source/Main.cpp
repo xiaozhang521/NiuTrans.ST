@@ -39,10 +39,7 @@ int main(int argc, const char** argv)
     if (argc == 0)
         return 1;
     /* load configurations */
-    std::cout << ">>>>>>>>>> Config init Test <<<<<<<<<<" << std::endl;
-    std::cout << argc << argv[0] << std::endl;
     S2TConfig config(argc, argv);
-    std::cout << "---------- Config init Test End ----------" << std::endl;
     S2TModel model;
     //model.InitModel(config);
     Generator generator;
