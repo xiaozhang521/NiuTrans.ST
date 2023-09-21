@@ -27,6 +27,7 @@
 #include <vector>
 #include <string>
 #include "../niutensor/tensor/XConfig.h"
+#include "../nmt/Config.h"
 
 using namespace std;
 using namespace nts;
@@ -41,6 +42,9 @@ namespace s2t
     /* model configuration */
     class S2TModelConfig : public ModelConfig
     {
+    public:
+        /* the dimension of fbank */
+        int fbank;
     public:
         /* load configuration from the command */
         void Load(int argsNum, const char** args);
