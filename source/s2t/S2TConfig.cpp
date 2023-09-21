@@ -20,11 +20,12 @@
   *
   */
 
+#include <iostream>
 #include <fstream>
 #include "S2TConfig.h"
 
-using namespace nts;
 using namespace std;
+using namespace nts;
 
 /* the s2t namespace */
 namespace s2t
@@ -35,7 +36,8 @@ namespace s2t
     >> argv - the list of arguments
     */
     S2TConfig::S2TConfig(int argc, const char** argv)
-    {
+    {   
+        std::cout << "S2TConfig constructor" << argc << std::endl;
         char** args = new char* [MAX_PARAM_NUM];
         for (int i = 0; i < argc; i++) {
             args[i] = new char[strlen(argv[i]) + 1];
@@ -100,7 +102,7 @@ namespace s2t
     }
 
     /* load s2t model configuration from the command */
-    S2TModelConfig::Load(int argsNum, const char** args)
+    void S2TModelConfig::Load(int argsNum, const char** args)
     {
         Create(argsNum, args);
 
@@ -117,7 +119,7 @@ namespace s2t
         LoadBool("shareencdec", &shareEncDecEmb, false);
         LoadBool("sharedec", &shareDecInputOutputEmb, false);
 
-        LoadInt("fbank", &fbank, 80)
+        LoadInt("fbank", &fbank, 80);
         LoadInt("pad", &pad, -1);
         LoadInt("sos", &sos, -1);
         LoadInt("eos", &eos, -1);
@@ -141,4 +143,4 @@ namespace s2t
         LoadFloat("ffndropout", &ffnDropout, 0.1F);
         LoadFloat("attdropout", &attDropout, 0.1F);
     }
-}
+} /* end of the s2r namespace */
