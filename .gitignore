@@ -901,3 +901,17 @@ NiuTrans.NMT.dir/Debug/Generator.obj
 NiuTrans.NMT.dir/Debug/Conv1D.obj
 .vscode/settings.json
 NiuTrans.NMT.dir/Debug/S2TConfig.obj
+CMakeFiles/NiuTrans.NMT.dir/source/niutensor/tensor/function/Debug/NiuTrans.NMT_generated_GELU.cu.obj
+CMakeFiles/NiuTrans.NMT.dir/source/niutensor/tensor/function/NiuTrans.NMT_generated_GELU.cu.obj.cmake.pre-gen
+CMakeFiles/NiuTrans.NMT.dir/source/niutensor/tensor/function/NiuTrans.NMT_generated_GELU.cu.obj.Debug.cmake
+CMakeFiles/NiuTrans.NMT.dir/source/niutensor/tensor/function/NiuTrans.NMT_generated_GELU.cu.obj.depend
+CMakeFiles/NiuTrans.NMT.dir/source/niutensor/tensor/function/NiuTrans.NMT_generated_GELU.cu.obj.MinSizeRel.cmake
+CMakeFiles/NiuTrans.NMT.dir/source/niutensor/tensor/function/NiuTrans.NMT_generated_GELU.cu.obj.Release.cmake
+CMakeFiles/NiuTrans.NMT.dir/source/niutensor/tensor/function/NiuTrans.NMT_generated_GELU.cu.obj.RelWithDebInfo.cmake
+NiuTrans.NMT.dir/Debug/S2TGeneratorDataset.obj
+NiuTrans.NMT.dir/Debug/NiuTrans.ST.tlog/link.read.2.tlog
+NiuTrans.NMT.dir/Debug/NiuTrans.ST.tlog/link-rc.write.1.tlog
+NiuTrans.NMT.dir/Debug/NiuTrans.ST.tlog/link-rc.read.1.tlog
+NiuTrans.NMT.dir/Debug/NiuTrans.ST.tlog/link-cvtres.write.1.tlog
+NiuTrans.NMT.dir/Debug/NiuTrans.ST.tlog/link-cvtres.read.1.tlog
+NiuTrans.NMT.dir/Debug/GELU.obj

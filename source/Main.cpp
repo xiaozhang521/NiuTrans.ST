@@ -40,9 +40,9 @@ int main(int argc, const char** argv)
     if (argc == 0)
         return 1;
     /* load configurations */
-    S2TConfig config(argc, argv);
+    /*S2TConfig config(argc, argv);
     S2TModel model;
-    model.InitModel(config);
+    model.InitModel(config);*/
     Generator generator;
     //generator.Init(config, model);
     //generator.generate(); 

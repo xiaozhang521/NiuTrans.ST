@@ -124,7 +124,8 @@ namespace nts { // namespace nts(NiuTrans.Tensor)
 #define FUNC_IDENTITY           FUNC_HARDTANH + 1
 #define FUNC_LOGSOFTMAX         FUNC_IDENTITY + 1
 #define FUNC_RECTIFY            FUNC_LOGSOFTMAX + 1
-#define FUNC_SIGMOID            FUNC_RECTIFY + 1
+#define FUNC_GELU               FUNC_RECTIFY + 1
+#define FUNC_SIGMOID            FUNC_GELU + 1
 #define FUNC_SOFTMAX            FUNC_SIGMOID + 1
 
 #define LOSS_BASE               FUNCTION_BASE * 2
