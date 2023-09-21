@@ -37,7 +37,13 @@ namespace s2t
     */
     S2TConfig::S2TConfig(int argc, const char** argv)
     {   
-        std::cout << "S2TConfig constructor" << argc << std::endl;
+        cout << "----- S2TConfig Constructor -----" << endl;
+        cout << "+ num of params: " << argc << " :: ";
+        for (int i=0; i < argc; i++) {
+            cout << " " << argv[i];
+        }
+        cout << endl;
+
         char** args = new char* [MAX_PARAM_NUM];
         for (int i = 0; i < argc; i++) {
             args[i] = new char[strlen(argv[i]) + 1];
@@ -50,22 +56,30 @@ namespace s2t
         char* configFN = new char[1024];
         LoadParamString(argc, args, "config", configFN, "");
 
+        cout << "+ configFN: " << configFN << endl;
+
         int argsNum = argc;
 
         /* override the configuration according to the file content */
         if (strcmp(configFN, "") != 0)
             argsNum = LoadFromFile(configFN, args);
 
+
+        showConfig();
         /* parse configuration in args */
         model.Load(argsNum, (const char **)args);
         common.Load(argsNum, (const char **)args);
         training.Load(argsNum, (const char **)args);
         inference.Load(argsNum, (const char **)args);
 
+        showConfig();
+
         for (int i = 0; i < MAX(argc, argsNum); i++)
             delete[] args[i];
         delete[] args;
         delete[] configFN;
+
+        cout << "--- S2TConfig Constructor End ---" << endl;
     }
 
     /*
@@ -85,6 +99,7 @@ namespace s2t
         /* parse arguments from the file */
         string key, value;
         while (f >> key >> value && argsNum < (MAX_PARAM_NUM - 1)) {
+            cout << "\t- key: "  << key << " value: " << value <<endl;
             if (args[argsNum] != NULL) {
                 delete[] args[argsNum];
             }
@@ -97,8 +112,16 @@ namespace s2t
             strcpy(args[argsNum++], value.c_str());
         }
 
+        cout << "+ argsNum: "  << argsNum <<endl;
+
         /* record the number of arguments */
         return argsNum;
+    }
+
+    void S2TConfig::showConfig()
+    {   
+        cout << "+ S2T Model Config" << endl;
+        model.showConfig();
     }
 
     /* load s2t model configuration from the command */
@@ -143,4 +166,10 @@ namespace s2t
         LoadFloat("ffndropout", &ffnDropout, 0.1F);
         LoadFloat("attdropout", &attDropout, 0.1F);
     }
+
+    void S2TModelConfig::showConfig()
+    {
+        cout << "\t- " << "fbank = " << fbank <<endl;
+    }   
+
 } /* end of the s2r namespace */

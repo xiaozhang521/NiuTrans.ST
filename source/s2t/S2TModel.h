@@ -23,7 +23,7 @@
 #ifndef __MODEL_S2T__
 #define __MODEL_S2T__
 
-//#include "Config.h"
+#include "S2TConfig.h"
 //#include "Decoder.h"
 //#include "Encoder.h"
 //#include "submodel/FFN.h"
@@ -44,15 +44,19 @@ namespace s2t
         int devID;
 
         ///* configurations */
-        //S2TConfig* config;
+        S2TConfig* config;
 
-        ///* the encoder */
+        ///* the convolutional layer */
+        //Cov1D* cov1;
+        //Cov1D* cov2;
+
+        /* the encoder */
         //AttEncoder* encoder;
 
-        ///* the decoder */
+        /* the decoder */
         //AttDecoder* decoder;
 
-        ///* output layer */
+        /* output layer */
         //OutputLayer* outputLayer;
 
     public:
@@ -63,10 +67,12 @@ namespace s2t
         ~S2TModel();
 
     //    /* get configurations */
-    //    vector<int*> GetIntConfigs();
+        vector<int*> GetIntConfigs();
+        vector<bool*> GetBoolConfigs();
+        vector<float*> GetFloatConfigs();
 
-    //    /* initialize the model */
-    //    void InitModel(NMTConfig& config);
+        /* initialize the model */
+        void InitModel(S2TConfig& config);
 
     //    /* print model configurations */
     //    void ShowModelConfig();
@@ -100,8 +106,8 @@ namespace s2t
     //    /* make the mask of the decoder for inference */
     //    XTensor MakeMTMaskDecInference(XTensor& paddingEnc);
 
-    //    /* get parameter matrices */
-    //    void GetParams(TensorList& list);
+        /* get parameter matrices */
+        void GetParams(TensorList& list);
 
     //    /* dump the model to a file */
     //    void DumpToFile(const char* fn);
