@@ -26,10 +26,11 @@
 #include "./nmt/translate/Translator.h"
 #include "./s2t/S2TModel.h"
 #include "./s2t/generate/Generator.h"
-#include "cudnn.h"
+
 
 using namespace nmt;
 using namespace s2t;
+using namespace nts;
 
 int main(int argc, const char** argv)
 {
@@ -79,6 +80,22 @@ int main(int argc, const char** argv)
     //    fprintf(stderr, "   Run this program with \"-train\" for training!\n");
     //    fprintf(stderr, "Or run this program with \"-input\" for translation!\n");
     //}
+    /*This is a conv test code*/
+    float data[6] = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0 };
+    float w[6] = { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 };
+    //XTensor a = new XTensor(3, dim, X_FLOAT, 1.0, -1, NULL);
+    XTensor a;
+    InitTensor3D(&a, 1, 3, 2, X_FLOAT, 0); // Batch X Chanel X length
+    a.SetData(data, 6, 0);
+    XTensor weight; // Out X In X Kernel
+    InitTensor3D(&weight, 2, 3, 1, X_FLOAT, 0);
+    weight.SetData(w, 6, 0);
+    a.Dump();
+    weight.Dump();
+    XTensor ans;
+    ans = Conv1DBase(a, weight, 1, 0);
+    //ans = Sum(a, weight, true);
+    ans.Dump();
 
     return 0;
 }
