@@ -26,6 +26,7 @@
 #include "Conv1D.h"
 #include "cudnn.h"
 
+
 namespace nts { // namespace nts(NiuTrans.Tensor)
 
 /*
@@ -35,8 +36,8 @@ void _Conv1DBase(const XTensor *input, const XTensor *weight, const XTensor *bia
                       int stride, int padding, bool useBias)
 {
     CheckNTErrors((input->GetDim(0) == output->GetDim(0) &&
-                    input->GetDim(1) == weight->GetDim(1) &&
-                    output->GetDim(1) == weight->GetDim(0)),
+                   input->GetDim(1) == weight->GetDim(1) &&
+                   output->GetDim(1) == weight->GetDim(0)),
                   "Unmatched dimension");
 
     CheckDev(input->devID, weight->devID);
@@ -44,53 +45,6 @@ void _Conv1DBase(const XTensor *input, const XTensor *weight, const XTensor *bia
         CheckNTErrors(bias->unitNum == weight->GetDim(0), "Unmatched dimension of bias")
         CheckDev(weight->devID, bias->devID);
     }
-
-#ifdef USE_CUDA
-    #ifdef USE_CUDNN
-    if (input->devID >= 0 || weight->devID >= 0 || (bias != NULL && bias->devID >= 0)) {
-        cudaSetDevice(input->devID);
-        cudnnHandle_t cudnnHandle;
-        CheckCUDNN(cudnnCreate(&cudnnHandle));
-        cudnnConvolutionDescriptor_t convDesc;
-        cudnnCreateConvolutionDescriptor(&convDesc);
-
-        cudnnTensorDescriptor_t inputDesc, outputDesc;
-        CheckCUDNN(cudnnCreateTensorDescriptor(&inputDesc));
-        /*CheckCUDNN(cudnnSetTensor4dDescriptor(input_desc,
-                                              CUDNN_TENSOR_NCHW,
-                                              CUDNN_DATA_FLOAT,
-                                              batch_size_,
-                                              group_ * in_channel_,
-                                              height_,
-                                              width_));*/
-        cudnnCreateTensorDescriptor(&outputDesc);
-
-        cudnnFilterDescriptor_t filterDesc;
-        cudnnCreateFilterDescriptor(&filterDesc);
-
-        // Step 4: Allocate Memory for Buffers
-        // Allocate memory for input, output, and workspace buffers on the GPU
-
-        // Step 5: Perform Convolution
-        //cudnnConvolutionForward(cudnn_handle, &alpha, inputDesc, inputData, filterDesc, filterData, convDesc, algo, workspace, workspaceSize, &beta, outputDesc, outputData);
-
-        // Step 6: Post-processing (if needed)
-
-        // Step 7: Clean Up Resources
-        // Release descriptors, tensors, and GPU memory
-
-        // Destroy the cudnnHandle when done
-        cudnnDestroy(cudnnHandle);
-        return;
-    }
-    else {
-        // TODO!!
-        ShowNTErrors("TODO!");
-    }
-    #endif
-    ShowNTErrors("TODO!");
-#endif
-
     int blockNum = input->GetDim(0);
     int inChannel = input->GetDim(1);
     int outChannel = output->GetDim(1);
@@ -101,12 +55,137 @@ void _Conv1DBase(const XTensor *input, const XTensor *weight, const XTensor *bia
     int outputBlockSize = output->GetDim(1) * output->GetDim(2);
 
 
-    DTYPE * ip = (DTYPE*)input->data;
-    DTYPE * op = (DTYPE*)output->data;
-    DTYPE * wp = (DTYPE*)weight->data;
-    DTYPE * bp = NULL;
+    DTYPE* ip = (DTYPE*)input->data;
+    DTYPE* op = (DTYPE*)output->data;
+    DTYPE* wp = (DTYPE*)weight->data;
+    DTYPE* bp = NULL;
     if (useBias)
         bp = (DTYPE*)bias->data;
+#ifdef USE_CUDA
+    #ifdef USE_CUDNN
+    if (input->devID >= 0 || weight->devID >= 0 || (bias != NULL && bias->devID >= 0)) {
+
+        cudaSetDevice(input->devID);
+        //Declare cudnn handle 
+        cudnnHandle_t cudnnHandle;
+        CheckCUDNN(cudnnCreate(&cudnnHandle));
+
+        //Declare input shape
+        cudnnTensorDescriptor_t inputDesc;
+        CheckCUDNN(cudnnCreateTensorDescriptor(&inputDesc));
+        CheckCUDNN(cudnnSetTensor4dDescriptor(inputDesc,
+                                              CUDNN_TENSOR_NCHW,
+                                              CUDNN_DATA_FLOAT,
+                                              input->dimSize[0],  // batch
+                                              input->dimSize[1],  // input chanel
+                                              1,                  // placeholder
+                                              input->dimSize[2]));// length
+        //Declare cnn kernel shape
+        cudnnFilterDescriptor_t kernelDesc;
+        cudnnConvolutionDescriptor_t convDesc;
+        CheckCUDNN(cudnnCreateFilterDescriptor(&kernelDesc));
+        CheckCUDNN(cudnnSetFilter4dDescriptor(kernelDesc,
+                                              CUDNN_DATA_FLOAT,
+                                              CUDNN_TENSOR_NCHW,
+                                              weight->dimSize[0],  // input chanel
+                                              weight->dimSize[1],  // output chanel
+                                              1,                   // placeholder
+                                              weight->dimSize[2]));// kernel
+
+
+        //Declare cnn operation
+        CheckCUDNN(cudnnCreateConvolutionDescriptor(&convDesc));
+        CheckCUDNN(cudnnSetConvolution2dDescriptor(convDesc,
+                                                   0, padding, // padding
+                                                   1, stride, // stride
+                                                   1, 1,  //dilation
+                                                   CUDNN_CROSS_CORRELATION, //CUDNN_CONVOLUTION
+                                                   CUDNN_DATA_FLOAT));
+        CheckCUDNN(cudnnSetConvolutionGroupCount(convDesc, 1)); //group
+
+        //Declare output shape
+        cudnnTensorDescriptor_t outputDesc;
+        CheckCUDNN(cudnnCreateTensorDescriptor(&outputDesc));
+        CheckCUDNN(cudnnSetTensor4dDescriptor(outputDesc,
+                                              CUDNN_TENSOR_NCHW,
+                                              CUDNN_DATA_FLOAT,
+                                              output->dimSize[0],
+                                              output->dimSize[1],
+                                              1,
+                                              output->dimSize[2]));
+
+        //Get the output shape to check
+        int checkBatchSize = 0, checkOutputChannels = 0, placeholder = 0, checkOutputLenth = 0;
+        CheckCUDNN(cudnnGetConvolution2dForwardOutputDim(convDesc,
+                                                         inputDesc,
+                                                         kernelDesc,
+                                                         &checkBatchSize,
+                                                         &checkOutputChannels,
+                                                         &placeholder,
+                                                         &checkOutputLenth));
+
+        //Check parameters
+        CheckNTErrors( (output->dimSize[2] == checkOutputLenth) &&
+            (output->dimSize[1] == checkOutputChannels), "The output shape is not correct!");
+
+        CheckNTErrors(cudnnHandle != nullptr && inputDesc != nullptr && kernelDesc != nullptr &&
+            convDesc != nullptr && outputDesc != nullptr, "Some cudnn settings are missing!");
+
+
+        //Declare CNN forward algorithm
+        int cudnnBestCNNAlgo=0;
+        int numAlgos = 1;
+        std::unique_ptr<cudnnConvolutionFwdAlgoPerf_t[]> perf_algos(
+            new cudnnConvolutionFwdAlgoPerf_t[numAlgos]);
+        int returned_algo_count{ 0 };
+        CheckCUDNN(cudnnGetConvolutionForwardAlgorithm_v7(cudnnHandle,
+                                                          inputDesc,
+                                                          kernelDesc,
+                                                          convDesc,
+                                                          outputDesc,
+                                                          numAlgos,
+                                                          &returned_algo_count,
+                                                          perf_algos.get()));
+        //Allocate the workspace memory
+        cudnnBestCNNAlgo = perf_algos[0].algo;
+        size_t workspaceSize = 0;
+        CheckCUDNN(cudnnGetConvolutionForwardWorkspaceSize(cudnnHandle,
+                                                           inputDesc,
+                                                           kernelDesc,
+                                                           convDesc,
+                                                           outputDesc,
+                                                           cudnnConvolutionFwdAlgo_t(cudnnBestCNNAlgo),
+                                                           &workspaceSize));
+        void* workspace = nullptr;
+        cudaMalloc(&workspace, workspaceSize);
+
+        //Start to calculate
+        auto alpha = 1.0f, beta = 0.0f;
+        CheckCUDNN(cudnnConvolutionForward(cudnnHandle,
+                                           &alpha,
+                                           inputDesc, input->data,
+                                           kernelDesc, weight->data,
+                                           convDesc, cudnnConvolutionFwdAlgo_t(cudnnBestCNNAlgo),
+                                           workspace, workspaceSize,
+                                           &beta,
+                                           outputDesc, output->data));
+
+        //Compute the bias if necessary
+        if (useBias) {
+            int dimOp = 1;
+            _SumDim(output, bias, output, dimOp, (DTYPE)1.0);
+        }
+
+        return;
+    }
+    else {
+        // TODO!! Do not use cudnn.
+        ShowNTErrors("TODO!");
+    }
+    #endif
+    ShowNTErrors("TODO!");
+#endif
+
 
     DTYPE value;
     for (int i = 0; i < blockNum; i++) {

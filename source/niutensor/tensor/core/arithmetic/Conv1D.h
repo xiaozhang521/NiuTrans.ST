@@ -23,6 +23,8 @@
 #define __CONV_H__
 
 #include "../../XTensor.h"
+#include <memory>
+#include "SumDim.h"
 
 namespace nts { // namespace nts(NiuTrans.Tensor)
 
