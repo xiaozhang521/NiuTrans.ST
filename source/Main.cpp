@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-#include "./nmt/Config.h"
+#include "./s2t/S2TConfig.h"
 #include "./nmt/train/Trainer.h"
 #include "./nmt/translate/Translator.h"
 #include "./s2t/S2TModel.h"
@@ -39,7 +39,7 @@ int main(int argc, const char** argv)
     if (argc == 0)
         return 1;
     /* load configurations */
-    //NMTConfig config(argc, argv);
+    S2TConfig config(argc, argv);
     S2TModel model;
     //model.InitModel(config);
     Generator generator;
