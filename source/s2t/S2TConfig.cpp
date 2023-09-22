@@ -68,6 +68,7 @@ namespace s2t
         showConfig();
         /* parse configuration in args */
         model.Load(argsNum, (const char **)args);
+        s2tmodel.Load(argsNum, (const char**)args);
         common.Load(argsNum, (const char **)args);
         training.Load(argsNum, (const char **)args);
         inference.Load(argsNum, (const char **)args);
@@ -119,9 +120,53 @@ namespace s2t
     }
 
     void S2TConfig::showConfig()
-    {   
+    {
         cout << "+ S2T Model Config" << endl;
-        model.showConfig();
+        /* 19 integers */
+        cout << "    - Integer" << endl;
+        cout << "\t| " << "srcVocabSize = " << model.srcVocabSize << endl;
+        cout << "\t| " << "tgtVocabSize = " << model.tgtVocabSize << endl;
+        cout << "\t| " << "sos = " << model.sos << endl;
+        cout << "\t| " << "eos = " << model.eos << endl;
+        cout << "\t| " << "pad = " << model.pad << endl;
+        cout << "\t| " << "unk = " << model.unk << endl;
+        cout << "\t| " << "maxSrcLen = " << model.maxSrcLen << endl;
+        cout << "\t| " << "maxTgtLen = " << model.maxTgtLen << endl;
+        cout << "\t| " << "maxRelativeLength = " << model.maxRelativeLength << endl;
+        cout << "\t| " << "fbank = " << s2tmodel.fbank << endl;
+        cout << "\t| " << "encEmbDim = " << model.encEmbDim << endl;
+        cout << "\t| " << "encLayerNum = " << model.encLayerNum << endl;
+        cout << "\t| " << "encSelfAttHeadNum = " << model.encSelfAttHeadNum << endl;
+        cout << "\t| " << "encFFNHiddenDim = " << model.encFFNHiddenDim << endl;
+        cout << "\t| " << "decEmbDim = " << model.decEmbDim << endl;
+        cout << "\t| " << "decLayerNum = " << model.decLayerNum << endl;
+        cout << "\t| " << "decSelfAttHeadNum = " << model.decSelfAttHeadNum << endl;
+        cout << "\t| " << "encDecAttHeadNum = " << model.encDecAttHeadNum << endl;
+        cout << "\t| " << "decFFNHiddenDim = " << model.decFFNHiddenDim << endl;
+
+
+
+
+        /* 12 bool */
+        cout << "    - Bool" << endl;
+        cout << "\t| " << "encoderL1Norm = " << model.encoderL1Norm << endl;
+        cout << "\t| " << "decoderL1Norm = " << model.decoderL1Norm << endl;
+        cout << "\t| " << "useBigAtt = " << model.useBigAtt << endl;
+        cout << "\t| " << "decoderOnly = " << model.decoderOnly << endl;
+        cout << "\t| " << "encFinalNorm = " << model.encFinalNorm << endl;
+        cout << "\t| " << "decFinalNorm = " << model.decFinalNorm << endl;
+        cout << "\t| " << "encPreLN = " << model.encPreLN << endl;
+        cout << "\t| " << "decPreLN = " << model.decPreLN << endl;
+        cout << "\t| " << "useEncHistory = " << model.useEncHistory << endl;
+        cout << "\t| " << "useDecHistory = " << model.useDecHistory << endl;
+        cout << "\t| " << "shareEncDecEmb = " << model.shareEncDecEmb << endl;
+        cout << "\t| " << "shareDecInputOutputEmb = " << model.shareDecInputOutputEmb << endl;
+
+        /* 3 float */
+        cout << "    - Float" << endl;
+        cout << "\t| " << "dropout = " << model.dropout << endl;
+        cout << "\t| " << "ffnDropout = " << model.ffnDropout << endl;
+        cout << "\t| " << "attDropout = " << model.attDropout << endl;
     }
 
     /* load s2t model configuration from the command */
@@ -129,91 +174,8 @@ namespace s2t
     {
         Create(argsNum, args);
 
-        LoadBool("bigatt", &useBigAtt, false);
-        LoadBool("encprenorm", &encPreLN, true);
-        LoadBool("decprenorm", &decPreLN, true);
-        LoadBool("encl1norm", &encoderL1Norm, false);
-        LoadBool("decl1norm", &decoderL1Norm, false);
-        LoadBool("decoderonly", &decoderOnly, false);
-        LoadBool("enchistory", &useEncHistory, false);
-        LoadBool("dechistory", &useDecHistory, false);
-        LoadBool("encfinalnorm", &encFinalNorm, true);
-        LoadBool("decfinalnorm", &decFinalNorm, true);
-        LoadBool("shareencdec", &shareEncDecEmb, false);
-        LoadBool("sharedec", &shareDecInputOutputEmb, false);
-
         LoadInt("fbank", &fbank, 80);
-        LoadInt("pad", &pad, -1);
-        LoadInt("sos", &sos, -1);
-        LoadInt("eos", &eos, -1);
-        LoadInt("unk", &unk, -1);
-        LoadInt("encemb", &encEmbDim, 512);
-        LoadInt("decemb", &decEmbDim, 512);
-        LoadInt("maxsrc", &maxSrcLen, 200);
-        LoadInt("maxtgt", &maxTgtLen, 200);
-        LoadInt("enclayer", &encLayerNum, 6);
-        LoadInt("declayer", &decLayerNum, 6);
-        LoadInt("maxrp", &maxRelativeLength, -1);
-        LoadInt("encffn", &encFFNHiddenDim, 1024);
-        LoadInt("decffn", &decFFNHiddenDim, 1024);
-        LoadInt("srcvocabsize", &srcVocabSize, -1);
-        LoadInt("tgtvocabsize", &tgtVocabSize, -1);
-        LoadInt("encheads", &encSelfAttHeadNum, 4);
-        LoadInt("decheads", &decSelfAttHeadNum, 4);
-        LoadInt("encdecheads", &encDecAttHeadNum, 4);
 
-        LoadFloat("dropout", &dropout, 0.3F);
-        LoadFloat("ffndropout", &ffnDropout, 0.1F);
-        LoadFloat("attdropout", &attDropout, 0.1F);
     }
-
-    void S2TModelConfig::showConfig()
-    {
-        /* 19 integers */
-        cout << "    - Integer" << endl;
-        cout << "\t| " << "srcVocabSize = " << srcVocabSize <<endl;
-        cout << "\t| " << "tgtVocabSize = " << tgtVocabSize <<endl;
-        cout << "\t| " << "sos = " << sos <<endl;
-        cout << "\t| " << "eos = " << eos <<endl;
-        cout << "\t| " << "pad = " << pad <<endl;
-        cout << "\t| " << "unk = " << unk <<endl;
-        cout << "\t| " << "maxSrcLen = " << maxSrcLen <<endl;
-        cout << "\t| " << "maxTgtLen = " << maxTgtLen <<endl;
-        cout << "\t| " << "maxRelativeLength = " << maxRelativeLength <<endl;
-        cout << "\t| " << "fbank = " << fbank <<endl;
-        cout << "\t| " << "encEmbDim = " << encEmbDim <<endl;
-        cout << "\t| " << "encLayerNum = " << encLayerNum <<endl;
-        cout << "\t| " << "encSelfAttHeadNum = " << encSelfAttHeadNum <<endl;
-        cout << "\t| " << "encFFNHiddenDim = " << encFFNHiddenDim <<endl;
-        cout << "\t| " << "decEmbDim = " << decEmbDim <<endl;
-        cout << "\t| " << "decLayerNum = " << decLayerNum <<endl;
-        cout << "\t| " << "decSelfAttHeadNum = " << decSelfAttHeadNum <<endl;
-        cout << "\t| " << "encDecAttHeadNum = " << encDecAttHeadNum <<endl;
-        cout << "\t| " << "decFFNHiddenDim = " << decFFNHiddenDim <<endl;
-        
-        
-
-
-        /* 12 bool */
-        cout << "    - Bool" << endl;
-        cout << "\t| " << "encoderL1Norm = " << encoderL1Norm <<endl;
-        cout << "\t| " << "decoderL1Norm = " << decoderL1Norm <<endl;
-        cout << "\t| " << "useBigAtt = " << useBigAtt <<endl;
-        cout << "\t| " << "decoderOnly = " << decoderOnly <<endl;
-        cout << "\t| " << "encFinalNorm = " << encFinalNorm <<endl;
-        cout << "\t| " << "decFinalNorm = " << decFinalNorm <<endl;
-        cout << "\t| " << "encPreLN = " << encPreLN <<endl;
-        cout << "\t| " << "decPreLN = " << decPreLN <<endl;
-        cout << "\t| " << "useEncHistory = " << useEncHistory <<endl;
-        cout << "\t| " << "useDecHistory = " << useDecHistory <<endl;
-        cout << "\t| " << "shareEncDecEmb = " << shareEncDecEmb <<endl;
-        cout << "\t| " << "shareDecInputOutputEmb = " << shareDecInputOutputEmb <<endl;
-
-        /* 3 float */
-        cout << "    - Float" << endl;
-        cout << "\t| " << "dropout = " << dropout <<endl;
-        cout << "\t| " << "ffnDropout = " << ffnDropout <<endl;
-        cout << "\t| " << "attDropout = " << attDropout <<endl;
-    }   
 
 } /* end of the s2r namespace */

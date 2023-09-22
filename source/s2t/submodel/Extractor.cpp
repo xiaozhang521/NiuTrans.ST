@@ -45,11 +45,11 @@ namespace s2t{
     {
         SetTrainingFlag(config.training.isTraining);
         devID = config.common.devID;
-        nConv = config.model.nConv;
-        convKernels.assign(config.model.convKernel.begin(), config.model.convKernel.end());
-        convStrides.assign(config.model.convStride.begin(), config.model.convStride.end());
+        nConv = config.s2tmodel.nConv;
+        convKernels.assign(config.s2tmodel.convKernel.begin(), config.s2tmodel.convKernel.end());
+        convStrides.assign(config.s2tmodel.convStride.begin(), config.s2tmodel.convStride.end());
 
-        inSize = config.model.fbank;
+        inSize = config.s2tmodel.fbank;
         hSize = config.model.encEmbDim;
         kernels = new XTensor[nConv];
         biases = new XTensor[nConv];

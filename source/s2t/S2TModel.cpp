@@ -49,7 +49,7 @@ namespace s2t
             &(config->model.maxSrcLen),
             &(config->model.maxTgtLen),
             &(config->model.maxRelativeLength),
-            &(config->model.fbank),
+            &(config->s2tmodel.fbank),
             &(config->model.encEmbDim),
             &(config->model.encLayerNum),
             &(config->model.encSelfAttHeadNum),
@@ -155,6 +155,7 @@ namespace s2t
             ShowNTErrors("TODO!!");
         }
         encoder->InitModel(*config);
+        config->showConfig();
         //decoder->InitModel(*config);
         //outputLayer->InitModel(*config);
     }

@@ -40,7 +40,7 @@ namespace s2t
     #define MAX_NAME_LEN 20
 
     /* model configuration */
-    class S2TModelConfig : public ModelConfig
+    class S2TModelConfig : public XConfig
     {
     public:
         /* the dimension of fbank */
@@ -53,16 +53,13 @@ namespace s2t
     public:
         /* load configuration from the command */
         void Load(int argsNum, const char** args);
-        /* print configurationle */
-        void showConfig();
     };
 
     /* inference configuration */
     class InferenceConfig : public TranslationConfig
     {
     public:
-        /* print configurationle */
-        void showConfig();
+
     };
 
 
@@ -71,7 +68,7 @@ namespace s2t
     {
     public:
         /* model configuration */
-        S2TModelConfig model;
+        S2TModelConfig s2tmodel;
 
         /* common configuration */
         // CommonConfig common;
