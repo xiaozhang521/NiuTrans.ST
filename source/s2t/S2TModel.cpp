@@ -112,6 +112,7 @@ namespace s2t
 
         FILE* modelFile = NULL;
         modelFile = fopen(config->common.modelFN, "rb");
+        cout << "+ modelFile: " << config->common.modelFN << "\t" << (modelFile == NULL) << endl;
 
         /* read model configurations */
         if (modelFile) {
