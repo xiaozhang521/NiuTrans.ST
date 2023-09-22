@@ -43,6 +43,7 @@ int main(int argc, const char** argv)
     S2TConfig config(argc, argv);
     S2TModel model;
     model.InitModel(config);
+    config.showConfig();
     Generator generator;
     //generator.Init(config, model);
     //generator.generate(); 
