@@ -90,6 +90,6 @@ namespace s2t
         /* print configurationle */
         void showConfig();
     };
-} /* end of the s2r namespace */
+} /* end of the s2t namespace */
 
 #endif /* __CONFIG_S2T__ */

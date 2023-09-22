@@ -48,35 +48,35 @@ namespace s2t
         useHistory = config.model.useEncHistory;
 
         extractor.InitModel(config);
-        /*****************************Waiting for conguration update********************************/
+        
         //CheckNTErrors(vSize > 1, "Set vocabulary size by \"-vsize\"");
-        //CheckNTErrors(nlayer >= 1, "We have one encoding layer at least!");
+        CheckNTErrors(nlayer >= 1, "We have one encoding layer at least!");
 
-        //ffns = new FFN[nlayer];
-        //selfAtts = new Attention[nlayer];
-        //attLayerNorms = new LayerNorm[nlayer];
-        //fnnLayerNorms = new LayerNorm[nlayer];
+        ffns = new FFN[nlayer];
+        selfAtts = new Attention[nlayer];
+        attLayerNorms = new LayerNorm[nlayer];
+        fnnLayerNorms = new LayerNorm[nlayer];
 
 
         
-        //if (useHistory) {
-        //    history = new LayerHistory;
-        //    history->InitModel(config, true);
-        //}
+        if (useHistory) {
+            history = new LayerHistory;
+            history->InitModel(config, true);
+        }
 
-        //if (finalNorm) {
-        //    encoderLayerNorm = new LayerNorm;
-        //    encoderLayerNorm->InitModel(config, devID, embDim, config.model.encoderL1Norm);
-        //}
+        if (finalNorm) {
+            encoderLayerNorm = new LayerNorm;
+            encoderLayerNorm->InitModel(config, devID, embDim, config.model.encoderL1Norm);
+        }
 
-        ///* initialize the stacked layers */
+        /* initialize the stacked layers */
         //embedder.InitModel(config);
 
-        //for (int i = 0; i < nlayer; i++) {
-        //    ffns[i].InitModel(config, true);
-        //    selfAtts[i].InitModel(config, true, true);
-        //    attLayerNorms[i].InitModel(config, devID, embDim, config.model.encoderL1Norm);
-        //    fnnLayerNorms[i].InitModel(config, devID, embDim, config.model.encoderL1Norm);
-        //}
+        for (int i = 0; i < nlayer; i++) {
+            ffns[i].InitModel(config, true);
+            selfAtts[i].InitModel(config, true, true);
+            attLayerNorms[i].InitModel(config, devID, embDim, config.model.encoderL1Norm);
+            fnnLayerNorms[i].InitModel(config, devID, embDim, config.model.encoderL1Norm);
+        }
     }
 }
