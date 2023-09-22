@@ -156,8 +156,8 @@ namespace s2t
         }
         encoder->InitModel(*config);
         config->showConfig();
-        //decoder->InitModel(*config);
-        //outputLayer->InitModel(*config);
+        decoder->InitModel(*config);
+        outputLayer->InitModel(*config);
     }
 
 }
