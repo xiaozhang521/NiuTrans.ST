@@ -171,6 +171,15 @@ namespace s2t
     {
         /* 19 integers */
         cout << "    - Integer" << endl;
+        cout << "\t| " << "srcVocabSize = " << srcVocabSize <<endl;
+        cout << "\t| " << "tgtVocabSize = " << tgtVocabSize <<endl;
+        cout << "\t| " << "sos = " << sos <<endl;
+        cout << "\t| " << "eos = " << eos <<endl;
+        cout << "\t| " << "pad = " << pad <<endl;
+        cout << "\t| " << "unk = " << unk <<endl;
+        cout << "\t| " << "maxSrcLen = " << maxSrcLen <<endl;
+        cout << "\t| " << "maxTgtLen = " << maxTgtLen <<endl;
+        cout << "\t| " << "maxRelativeLength = " << maxRelativeLength <<endl;
         cout << "\t| " << "fbank = " << fbank <<endl;
         cout << "\t| " << "encEmbDim = " << encEmbDim <<endl;
         cout << "\t| " << "encLayerNum = " << encLayerNum <<endl;
@@ -181,15 +190,9 @@ namespace s2t
         cout << "\t| " << "decSelfAttHeadNum = " << decSelfAttHeadNum <<endl;
         cout << "\t| " << "encDecAttHeadNum = " << encDecAttHeadNum <<endl;
         cout << "\t| " << "decFFNHiddenDim = " << decFFNHiddenDim <<endl;
-        cout << "\t| " << "maxRelativeLength = " << maxRelativeLength <<endl;
-        cout << "\t| " << "maxSrcLen = " << maxSrcLen <<endl;
-        cout << "\t| " << "maxTgtLen = " << maxTgtLen <<endl;
-        cout << "\t| " << "sos = " << sos <<endl;
-        cout << "\t| " << "eos = " << eos <<endl;
-        cout << "\t| " << "pad = " << pad <<endl;
-        cout << "\t| " << "unk = " << unk <<endl;
-        cout << "\t| " << "srcVocabSize = " << srcVocabSize <<endl;
-        cout << "\t| " << "tgtVocabSize = " << tgtVocabSize <<endl;
+        
+        
+
 
         /* 12 bool */
         cout << "    - Bool" << endl;
