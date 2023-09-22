@@ -35,7 +35,7 @@ namespace s2t
     >> argc - number of arguments
     >> argv - the list of arguments
     */
-    S2TConfig::S2TConfig(int argc, const char** argv)
+    S2TConfig::S2TConfig(int argc, const char** argv) : NMTConfig(argc, argv)
     {   
         cout << "----- S2TConfig Constructor -----" << endl;
         cout << "+ num of params: " << argc << " :: ";
