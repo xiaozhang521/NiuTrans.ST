@@ -62,17 +62,17 @@ namespace s2t
 
 
     /* configuration of the s2t project  */
-    class S2TConfig
+    class S2TConfig : public NMTConfig
     {
     public:
         /* model configuration */
         S2TModelConfig model;
 
         /* common configuration */
-        CommonConfig common;
+        // CommonConfig common;
 
         /* training configuration */
-        TrainingConfig training;
+        // TrainingConfig training;
 
         /* inference configuration */
         InferenceConfig inference;
