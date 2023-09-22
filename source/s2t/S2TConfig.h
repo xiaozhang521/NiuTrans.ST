@@ -45,6 +45,11 @@ namespace s2t
     public:
         /* the dimension of fbank */
         int fbank;
+        /*Sub-sampling for speech feature*/
+        /* TODO!!!  this following vector configs, now they are static for whisper.*/
+        int nConv = 2;
+        vector<int> convKernel = { 3,3 };
+        vector<int> convStride = { 1,2 };
     public:
         /* load configuration from the command */
         void Load(int argsNum, const char** args);

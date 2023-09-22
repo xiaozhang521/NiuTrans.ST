@@ -16,19 +16,16 @@
 
 
  /*
-  * $Created by: Yuhao Zhang (yoohao.zhang@gmail.com) 2023-09-19
-  *
-  */
+ * $Created by: Yuhao Zhang (yoohao.zhang@gmail.com) 2023-09-19
+ */
 
 #ifndef __MODEL_S2T__
 #define __MODEL_S2T__
 
 #include "S2TConfig.h"
-//#include "Decoder.h"
-//#include "Encoder.h"
-//#include "submodel/FFN.h"
-//#include "submodel/Output.h"
-//#include "submodel/Attention.h"
+#include "../nmt/Decoder.h"
+#include "S2TEncoder.h"
+#include "../nmt/submodel/Output.h"
 #include "../niutensor/train/XModel.h"
 using namespace nts;
   /* the s2t namespace */
@@ -46,18 +43,14 @@ namespace s2t
         ///* configurations */
         S2TConfig* config;
 
-        ///* the convolutional layer */
-        //Cov1D* cov1;
-        //Cov1D* cov2;
-
         /* the encoder */
-        //AttEncoder* encoder;
+        S2TAttEncoder* encoder;
 
         /* the decoder */
-        //AttDecoder* decoder;
+        AttDecoder* decoder;
 
         /* output layer */
-        //OutputLayer* outputLayer;
+        OutputLayer* outputLayer;
 
     public:
         /* constructor */

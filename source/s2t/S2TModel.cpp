@@ -15,16 +15,20 @@
  */
 
 
- /*
-  * $Created by: Yuhao Zhang (yoohao.zhang@gmail.com) 2023-09-19
-  */
+/*
+* $Created by: Yuhao Zhang (yoohao.zhang@gmail.com) 2023-09-19
+*/
 #include "S2TModel.h"
 #include <iostream>
 namespace s2t
 {
     S2TModel::S2TModel()
     {
+        devID = -1;
         config = NULL;
+        encoder = new S2TAttEncoder();
+        decoder = new AttDecoder();
+        outputLayer = new OutputLayer();
     }
     S2TModel::~S2TModel()
     {
@@ -93,6 +97,14 @@ namespace s2t
         devID = config->common.devID;
 
         std::cout << "--- S2TModel Init End ---" << std::endl;
+
+        if (config->training.isTraining)
+        {
+            ShowNTErrors("TODO!!");
+        }
+        encoder->InitModel(*config);
+        //decoder->InitModel(*config);
+        //outputLayer->InitModel(*config);
     }
 
 }
