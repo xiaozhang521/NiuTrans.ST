@@ -191,6 +191,7 @@ namespace s2t
         cout << "\t| " << "srcVocabSize = " << srcVocabSize <<endl;
         cout << "\t| " << "tgtVocabSize = " << tgtVocabSize <<endl;
 
+        /* 12 bool */
         cout << "    - Bool" << endl;
         cout << "\t| " << "encoderL1Norm = " << encoderL1Norm <<endl;
         cout << "\t| " << "decoderL1Norm = " << decoderL1Norm <<endl;
@@ -205,6 +206,11 @@ namespace s2t
         cout << "\t| " << "shareEncDecEmb = " << shareEncDecEmb <<endl;
         cout << "\t| " << "shareDecInputOutputEmb = " << shareDecInputOutputEmb <<endl;
 
+        /* 3 float */
+        cout << "    - Float" << endl;
+        cout << "\t| " << "dropout = " << dropout <<endl;
+        cout << "\t| " << "ffnDropout = " << ffnDropout <<endl;
+        cout << "\t| " << "attDropout = " << attDropout <<endl;
     }   
 
 } /* end of the s2r namespace */
