@@ -135,7 +135,7 @@ namespace s2t
                 fread(c, sizeof(int), 1, modelFile);
             }
             /* reset the maximum source sentence length */
-            config->model.maxSrcLen = MIN(maxSrcLen, config->model.maxSrcLen);
+            // config->model.maxSrcLen = MIN(maxSrcLen, config->model.maxSrcLen);
             /* 3 float */
             for (auto c : floatConfig) {
                 fread(c, sizeof(float), 1, modelFile);
