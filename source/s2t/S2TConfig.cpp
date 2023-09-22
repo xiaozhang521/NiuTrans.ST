@@ -35,7 +35,7 @@ namespace s2t
     >> argc - number of arguments
     >> argv - the list of arguments
     */
-    S2TConfig::S2TConfig(int argc, const char** argv)
+    S2TConfig::S2TConfig(int argc, const char** argv) : NMTConfig(argc, argv)
     {   
         cout << "----- S2TConfig Constructor -----" << endl;
         cout << "+ num of params: " << argc << " :: ";
@@ -169,7 +169,48 @@ namespace s2t
 
     void S2TModelConfig::showConfig()
     {
-        cout << "\t- " << "fbank = " << fbank <<endl;
+        /* 19 integers */
+        cout << "    - Integer" << endl;
+        cout << "\t| " << "fbank = " << fbank <<endl;
+        cout << "\t| " << "encEmbDim = " << encEmbDim <<endl;
+        cout << "\t| " << "encLayerNum = " << encLayerNum <<endl;
+        cout << "\t| " << "encSelfAttHeadNum = " << encSelfAttHeadNum <<endl;
+        cout << "\t| " << "encFFNHiddenDim = " << encFFNHiddenDim <<endl;
+        cout << "\t| " << "decEmbDim = " << decEmbDim <<endl;
+        cout << "\t| " << "decLayerNum = " << decLayerNum <<endl;
+        cout << "\t| " << "decSelfAttHeadNum = " << decSelfAttHeadNum <<endl;
+        cout << "\t| " << "encDecAttHeadNum = " << encDecAttHeadNum <<endl;
+        cout << "\t| " << "decFFNHiddenDim = " << decFFNHiddenDim <<endl;
+        cout << "\t| " << "maxRelativeLength = " << maxRelativeLength <<endl;
+        cout << "\t| " << "maxSrcLen = " << maxSrcLen <<endl;
+        cout << "\t| " << "maxTgtLen = " << maxTgtLen <<endl;
+        cout << "\t| " << "sos = " << sos <<endl;
+        cout << "\t| " << "eos = " << eos <<endl;
+        cout << "\t| " << "pad = " << pad <<endl;
+        cout << "\t| " << "unk = " << unk <<endl;
+        cout << "\t| " << "srcVocabSize = " << srcVocabSize <<endl;
+        cout << "\t| " << "tgtVocabSize = " << tgtVocabSize <<endl;
+
+        /* 12 bool */
+        cout << "    - Bool" << endl;
+        cout << "\t| " << "encoderL1Norm = " << encoderL1Norm <<endl;
+        cout << "\t| " << "decoderL1Norm = " << decoderL1Norm <<endl;
+        cout << "\t| " << "useBigAtt = " << useBigAtt <<endl;
+        cout << "\t| " << "decoderOnly = " << decoderOnly <<endl;
+        cout << "\t| " << "encFinalNorm = " << encFinalNorm <<endl;
+        cout << "\t| " << "decFinalNorm = " << decFinalNorm <<endl;
+        cout << "\t| " << "encPreLN = " << encPreLN <<endl;
+        cout << "\t| " << "decPreLN = " << decPreLN <<endl;
+        cout << "\t| " << "useEncHistory = " << useEncHistory <<endl;
+        cout << "\t| " << "useDecHistory = " << useDecHistory <<endl;
+        cout << "\t| " << "shareEncDecEmb = " << shareEncDecEmb <<endl;
+        cout << "\t| " << "shareDecInputOutputEmb = " << shareDecInputOutputEmb <<endl;
+
+        /* 3 float */
+        cout << "    - Float" << endl;
+        cout << "\t| " << "dropout = " << dropout <<endl;
+        cout << "\t| " << "ffnDropout = " << ffnDropout <<endl;
+        cout << "\t| " << "attDropout = " << attDropout <<endl;
     }   
 
 } /* end of the s2r namespace */

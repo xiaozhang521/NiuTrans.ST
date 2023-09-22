@@ -70,6 +70,17 @@ namespace s2t
         /* 12 bool */
         vector<bool*> boolConfig = {
             &(config->model.encoderL1Norm),
+            &(config->model.decoderL1Norm),
+            &(config->model.useBigAtt),
+            &(config->model.decoderOnly),
+            &(config->model.encFinalNorm),
+            &(config->model.decFinalNorm),
+            &(config->model.encPreLN),
+            &(config->model.decPreLN),
+            &(config->model.useEncHistory),
+            &(config->model.useDecHistory),
+            &(config->model.shareEncDecEmb),
+            &(config->model.shareDecInputOutputEmb),
         };
 
         return boolConfig;
@@ -81,6 +92,8 @@ namespace s2t
         /* 3 float */
         vector<float*> floatConfig = {
             &(config->model.dropout),
+            &(config->model.ffnDropout),
+            &(config->model.attDropout),
         };
 
         return floatConfig;
@@ -95,6 +108,45 @@ namespace s2t
         std::cout << "----- S2TModel Init -----" << std::endl;
         config = &myConfig;
         devID = config->common.devID;
+
+        /* configurations for the model */
+        vector<int*> intConfig = GetIntConfigs();
+        vector<bool*> boolConfig = GetBoolConfigs();
+        vector<float*> floatConfig = GetFloatConfigs();
+
+        FILE* modelFile = NULL;
+        modelFile = fopen(config->common.modelFN, "rb");
+        cout << "+ modelFile: " << config->common.modelFN << "\t" << (modelFile == NULL) << endl;
+
+        /* read model configurations */
+        if (modelFile) {
+        
+            // CheckNTErrors(modelFile, "Failed to open the model file");
+
+            LOG("loading configurations from the model file...");
+
+            /* 12 booleans */
+            for (auto c : boolConfig) {
+                fread(c, sizeof(bool), 1, modelFile);
+            }
+            int maxSrcLen = config->model.maxSrcLen;
+            /* 19 intergers */
+            for (auto c : intConfig) {
+                fread(c, sizeof(int), 1, modelFile);
+            }
+            /* reset the maximum source sentence length */
+            config->model.maxSrcLen = MIN(maxSrcLen, config->model.maxSrcLen);
+            /* 3 float */
+            for (auto c : floatConfig) {
+                fread(c, sizeof(float), 1, modelFile);
+            }
+        }
+
+        if (config->training.isTraining) {
+            
+            /* currently we do not support training */
+
+        }
 
         std::cout << "--- S2TModel Init End ---" << std::endl;
 
