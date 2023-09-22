@@ -40,6 +40,15 @@ namespace s2t
     {
         /* 19 integers */
         vector<int*> intConfig = {
+            &(config->model.srcVocabSize),
+            &(config->model.tgtVocabSize),
+            &(config->model.sos),
+            &(config->model.eos),
+            &(config->model.pad),
+            &(config->model.unk),
+            &(config->model.maxSrcLen),
+            &(config->model.maxTgtLen),
+            &(config->model.maxRelativeLength),
             &(config->model.fbank),
             &(config->model.encEmbDim),
             &(config->model.encLayerNum),
@@ -50,15 +59,6 @@ namespace s2t
             &(config->model.decSelfAttHeadNum),
             &(config->model.encDecAttHeadNum),
             &(config->model.decFFNHiddenDim),
-            &(config->model.maxRelativeLength),
-            &(config->model.maxSrcLen),
-            &(config->model.maxTgtLen),
-            &(config->model.sos),
-            &(config->model.eos),
-            &(config->model.pad),
-            &(config->model.unk),
-            &(config->model.srcVocabSize),
-            &(config->model.tgtVocabSize),
         };
 
         return intConfig;
