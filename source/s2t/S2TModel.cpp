@@ -185,16 +185,16 @@ namespace s2t
     {
         list.Clear();
 
+        /* extractor parameters */
+        for (int i = 0; i < encoder->extractor->nConv; i++) {
+            list.Add(&encoder->extractor->kernels[i]);
+            list.Add(&encoder->extractor->biases[i]);
+        }
+
         if (config->model.useBigAtt) {
 
             /* encoder parameters */
             if (!config->model.decoderOnly) {
-
-                /* extractor parameters */
-                for (int i = 0; i < encoder->extractor->nConv; i++) {
-                    list.Add(&encoder->extractor->kernels[i]);
-                    list.Add(&encoder->extractor->biases[i]);
-                }
 
                 if (encoder->useHistory) {
                     for (int i = 0; i < encoder->nlayer + 1; i++)
@@ -367,7 +367,7 @@ namespace s2t
         }
 
         if (!config->model.decoderOnly) {
-            list.Add(encoder->embedder.w);
+            // list.Add(encoder->embedder.w);
         }
 
         if (!config->model.shareEncDecEmb) {
