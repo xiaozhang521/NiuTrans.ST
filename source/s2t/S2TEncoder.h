@@ -28,11 +28,11 @@
 using namespace nmt;
 namespace s2t
 {
-class S2TAttEncoder : AttEncoder
+class S2TAttEncoder : public AttEncoder
 {
 public:
     /*Speech feature extractor*/
-    Extractor extractor;
+    Extractor* extractor;
 
     /* constructor */
     S2TAttEncoder();

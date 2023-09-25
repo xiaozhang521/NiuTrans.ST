@@ -47,7 +47,8 @@ namespace s2t
         finalNorm = config.model.encFinalNorm;
         useHistory = config.model.useEncHistory;
 
-        extractor.InitModel(config);
+        extractor = new Extractor;
+        extractor->InitModel(config);
         
         //CheckNTErrors(vSize > 1, "Set vocabulary size by \"-vsize\"");
         CheckNTErrors(nlayer >= 1, "We have one encoding layer at least!");
