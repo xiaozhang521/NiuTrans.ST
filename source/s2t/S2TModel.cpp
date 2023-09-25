@@ -185,12 +185,14 @@ namespace s2t
     {
         list.Clear();
 
-        /* extractor parameters */
-        for (int i = 0; i < encoder->extractor->nConv; i++) {
-            list.Add(&encoder->extractor->kernels[i]);
-            list.Add(&encoder->extractor->biases[i]);
+        if (!config->model.decoderOnly) {
+            /* extractor parameters */
+            for (int i = 0; i < encoder->extractor->nConv; i++) {
+                list.Add(&encoder->extractor->kernels[i]);
+                list.Add(&encoder->extractor->biases[i]);
+            }
         }
-
+        
         if (config->model.useBigAtt) {
 
             /* encoder parameters */
@@ -278,8 +280,6 @@ namespace s2t
         else {
             /* encoder parameters */
             if (!config->model.decoderOnly) {
-
-                // extractor parameters
 
                 if (encoder->useHistory) {
                     for (int i = 0; i < encoder->nlayer + 1; i++)
@@ -389,6 +389,43 @@ namespace s2t
         GetParams(params);
 
         cout << "+ Num of S2T Model Params: " << params.Size() << endl;
+
+        int size = 0;
+        for (int i = 0; i < params.Size(); i++) {
+            size += params[i]->unitNum;
+        }
+
+        if (config->common.useFP16) {
+            LOG("running with fp16");
+        }
+        else {
+            LOG("running with fp32");
+        }
+
+        /* convert parameters to FP16 before reading files */
+        if (config->common.useFP16) {
+            for (int i = 0; i < params.Size(); i++) {
+                XTensor* p = params[i];
+                InitTensor(p, p->order, p->dimSize, X_FLOAT16, p->devID, p->enableGrad && X_ENABLE_GRAD);
+            }
+
+            XTensor& encEmb = encoder->embedder.posEmbeddingBase;
+            encEmb = ConvertDataType(encEmb, X_FLOAT16);
+            if (!config->model.shareEncDecEmb) {
+                XTensor& decEmb = decoder->embedder->posEmbeddingBase;
+                decEmb = ConvertDataType(decEmb, X_FLOAT16);
+            }
+        }
+
+        for (int i = 0; i < params.Size(); i++)
+            params[i]->BinaryRead(file);
+
+        double elapsed = GetClockSec() - startT;
+        LOG("model loaded (took %.1fs)", elapsed);
+
+
+        params[params.Size()-1]->Dump(stderr, NULL,1);
+
     }
 
 
