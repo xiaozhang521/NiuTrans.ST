@@ -105,8 +105,8 @@ namespace s2t
     //    /* dump the model to a file */
     //    void DumpToFile(const char* fn);
 
-    //    /* read the parameters */
-    //    void LoadFromFile(FILE* file);
+        /* read the parameters */
+        void LoadFromFile(FILE* file);
 
     //    /* get the number of parameters */
     //    uint64_t GetParamNum();
