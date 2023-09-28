@@ -424,7 +424,7 @@ namespace s2t
         LOG("model loaded (took %.1fs)", elapsed);
 
 
-        params[params.Size()-1]->Dump(stderr, NULL,1);
+        // params[params.Size()-1]->Dump(stderr, NULL,1);
 
     }
 
