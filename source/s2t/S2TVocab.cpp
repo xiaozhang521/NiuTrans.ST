@@ -97,8 +97,8 @@ namespace s2t
         //   Utf8ToString(tokensUtf8[i]);
         //}
         
-        string testSentence = "ß@·âÐÅŒ‘ì¶¹«Ôª1654Äê";
-        cout << "Origin String: " << testSentence << endl;
+        // string testSentence = "ï¿½@ï¿½ï¿½ï¿½ÅŒï¿½ì¶¹ï¿½Ôª1654ï¿½ï¿½";
+        // cout << "Origin String: " << testSentence << endl;
         //StringToUtf8(testSentence);
     }
 
