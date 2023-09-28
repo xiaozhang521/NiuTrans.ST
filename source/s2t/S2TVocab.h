@@ -72,6 +72,7 @@ namespace s2t {
 
         void Test();
 
+        /* not work */
         wstring Utf8ToString(const std::vector<unsigned char>& utf8Bytes);
         wstring Utf8ToString(const string& utf8Bytes);
         string StringToUtf8(const string& String);
