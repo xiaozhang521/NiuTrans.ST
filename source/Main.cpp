@@ -26,6 +26,7 @@
 #include "./nmt/translate/Translator.h"
 #include "./s2t/S2TModel.h"
 #include "./s2t/generate/Generator.h"
+#include "./s2t/S2TVocab.h"
 
 
 using namespace nmt;
@@ -44,6 +45,14 @@ int main(int argc, const char** argv)
     S2TModel model;
     model.InitModel(config);
     config.showConfig();
+
+    cout << "Tgt Vocab File: " << config.common.tgtVocabFN << endl;
+    S2TVocab vocab;
+    vocab.Load(config.common.tgtVocabFN);
+    // vocab.ShowVocab();
+    vocab.Test();
+
+
     Generator generator;
     //generator.Init(config, model);
     //generator.generate(); 
