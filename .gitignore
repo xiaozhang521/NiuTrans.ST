@@ -921,3 +921,7 @@ NiuTrans.NMT.dir/Debug/S2TEncoder.obj
 /build
 /build
 /whisper_tiny_niutrans_s2t.bin
+/bin/Debug
+/out/build/bin
+/source/test.wav
+/test.wav
