@@ -20,13 +20,11 @@
  */
 
 #include <iostream>
-
-#include "./s2t/S2TConfig.h"
+#include "./nmt/Config.h"
 #include "./nmt/train/Trainer.h"
 #include "./nmt/translate/Translator.h"
-#include "./s2t/S2TModel.h"
-#include "./s2t/generate/Generator.h"
-#include "./s2t/S2TVocab.h"
+#include "./s2t/WaveLoader.h"
+#include "./s2t/FeatureWindow.h"
 
 
 using namespace nmt;
@@ -35,25 +33,40 @@ using namespace nts;
 
 int main(int argc, const char** argv)
 {
-    std::ios_base::sync_with_stdio(false);
-    std::cin.tie(NULL);
+    //--------------------------Load Wave--------------------------
+    ifstream inFile("C:\\Code\\VS\\NiuTrans.ST\\test.wav", ios::in | ios::binary);
+    if (!inFile) {
+        cout << "error no file" << endl;
+        return 0;
+    }
+    class WaveInfo wave;
+    class WaveData data;
+    data.Read(inFile);
+    struct FrameExtractionOptions opt;
+    class OfflineFeatureTpl<FrameExtractionOptions> oft(opt);
+    XTensor out;
+    oft.ComputeFeatures(data.Data(), data.SampFreq(), 1.0, &out);
+    return 0;
+    //--------------------------Load Wave--------------------------
+    //std::ios_base::sync_with_stdio(false);
+    //std::cin.tie(NULL);
 
-    if (argc == 0)
-        return 1;
-    /* load configurations */
-    S2TConfig config(argc, argv);
-    S2TModel model;
-    model.InitModel(config);
-    config.showConfig();
+    //if (argc == 0)
+    //    return 1;
+    ///* load configurations */
+    //S2TConfig config(argc, argv);
+    //S2TModel model;
+    //model.InitModel(config);
+    //config.showConfig();
 
-    cout << "Tgt Vocab File: " << config.common.tgtVocabFN << endl;
-    S2TVocab vocab;
-    vocab.Load(config.common.tgtVocabFN);
-    // vocab.ShowVocab();
-    vocab.Test();
+    //cout << "Tgt Vocab File: " << config.common.tgtVocabFN << endl;
+    //S2TVocab vocab;
+    //vocab.Load(config.common.tgtVocabFN);
+    //// vocab.ShowVocab();
+    //vocab.Test();
 
 
-    Generator generator;
+    //Generator generator;
     //generator.Init(config, model);
     //generator.generate(); 
     // 
@@ -91,5 +104,5 @@ int main(int argc, const char** argv)
     //    fprintf(stderr, "Or run this program with \"-input\" for translation!\n");
     //}
 
-    return 0;
+
 }
