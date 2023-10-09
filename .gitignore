@@ -874,3 +874,9 @@ ZERO_CHECK.vcxproj.filters
 /.vs
 /build/CMakeFiles
 /out/build/x64-Debug
+/out/build/bin
+/build
+/bin/Debug
+/whisper_tiny_niutrans_s2t.bin
+/test.wav
+/source/test.wav

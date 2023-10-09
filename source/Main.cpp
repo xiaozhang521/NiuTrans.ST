@@ -17,35 +17,56 @@
 
 /*
  * $Created by: Chi Hu (huchinlp@gmail.com) 2021-11-06
+ * $Modify for test by Erfeng HE 2023-09
  */
 
 #include <iostream>
+#include <fstream>
 
 #include "./nmt/Config.h"
 #include "./nmt/train/Trainer.h"
 #include "./nmt/translate/Translator.h"
-#include "cudnn.h"
+
+#include "./s2t/WaveLoader.h"
+#include "./s2t/FeatureWindow.h"
 
 using namespace nmt;
+using namespace s2t;
 
 int main(int argc, const char** argv)
 {
-    std::ios_base::sync_with_stdio(false);
-    std::cin.tie(NULL);
+    //----------------------------load wave----------------------------
+    ifstream inFile("C:\\Code\\VS\\NiuTrans.ST\\test.wav", ios::in | ios::binary);
+    if (!inFile) {
+        cout << "error no file" << endl;
+        return 0;
+    }
+    class WaveInfo wave;
+    class WaveData data;
+    data.Read(inFile);
+    struct FrameExtractionOptions opt;
+    class OfflineFeatureTpl<FrameExtractionOptions> oft(opt);
+    XTensor out;
+    oft.ComputeFeatures(data.Data(), data.SampFreq(), 1.0, &out);
+   
 
-    if (argc == 0)
-        return 1;
+    // ----------------------------load wave--------------------------------
+    //std::ios_base::sync_with_stdio(false);
+    //std::cin.tie(NULL);
 
-    /* load configurations */
-    NMTConfig config(argc, argv);
-
-    srand(config.common.seed);
-
-    /* training */
-    if (strcmp(config.training.trainFN, "") != 0) {
-
-        NMTModel model;
-        model.InitModel(config);
+    //if (argc == 0)
+    //    return 1;
+    ///* load configurations */
+    //S2TConfig config(argc, argv);
+    //S2TModel model;
+    //model.InitModel(config);
+    //config.showConfig();
+    //Generator generator;
+    //generator.Init(config, model);
+    //generator.generate(); 
+    // 
+    /*****************************Old entrance******************************/
+    //srand(config.common.seed);
 
         Trainer trainer;
         trainer.Init(config, model);
