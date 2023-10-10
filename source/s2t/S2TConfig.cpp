@@ -72,6 +72,7 @@ namespace s2t
         common.Load(argsNum, (const char **)args);
         training.Load(argsNum, (const char **)args);
         inference.Load(argsNum, (const char **)args);
+        // translation = (TranslationConfig)inference;
 
         showConfig();
 
