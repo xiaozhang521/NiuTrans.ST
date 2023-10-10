@@ -51,7 +51,7 @@ namespace s2t
         void* seacher;
 
         /* configuration of the NMT system */
-        //S2TConfig* config;
+        S2TConfig* config;
 
         /* output buffer */
         XList* outputBuf;
@@ -64,10 +64,12 @@ namespace s2t
         ~Generator();
 
         ///* initialize the translator */
-        //void Init(S2TConfig& myConfig, S2TModel& myModel);
+        void Init(S2TConfig& myConfig, S2TModel& myModel);
 
         ///* the translation function */
         //bool Translate();
+
+        bool TestTranslate();
 
         ///* sort the outputs by the indices (in ascending order) */
         //void SortOutputs();
