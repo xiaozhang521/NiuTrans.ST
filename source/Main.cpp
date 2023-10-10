@@ -66,15 +66,18 @@ int main(int argc, const char** argv)
     //model.InitModel(config);
     //config.showConfig();
 
-    //cout << "Tgt Vocab File: " << config.common.tgtVocabFN << endl;
-    //S2TVocab vocab;
-    //vocab.Load(config.common.tgtVocabFN);
-    //// vocab.ShowVocab();
-    //vocab.Test();
+    model.TestDumpParams(&model.encoder->selfAtts[1].weightQ);
+
+    cout << "Tgt Vocab File: " << config.common.tgtVocabFN << endl;
+    S2TVocab vocab;
+    vocab.Load(config.common.tgtVocabFN);
+    // vocab.ShowVocab();
+    vocab.Test();
 
 
-    //Generator generator;
-    //generator.Init(config, model);
+    Generator generator;
+    generator.Init(config, model);
+    generator.TestTranslate();
     //generator.generate(); 
     // 
     /*****************************Old entrance******************************/
