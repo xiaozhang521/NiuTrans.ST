@@ -14,20 +14,71 @@
  * limitations under the License.
  */
 
- /*
-  * $Created by: Yuhao Zhang (yoohao.zhang@gmail.com) 2023-09-19
-  */
-
+/*
+ * $Created by: Yuhao Zhang (yoohao.zhang@gmail.com) 2023-09-19
+ */
 
 #include "Generator.h"
+#include <iostream>
 
-namespace s2t {
+using namespace nts;
+using namespace std;
+
+namespace s2t
+{
+    /* constructor */
     Generator::Generator()
     {
-
+        config = NULL;
+        model = NULL;
+        seacher = NULL;
+        outputBuf = new XList;
     }
+
+    /* de-constructor */
     Generator::~Generator()
     {
-
+        if (config->inference.beamSize > 1)
+            delete (BeamSearch*)seacher;
+        else
+            delete (GreedySearch*)seacher;
+        delete outputBuf;
     }
+
+    /* initialize the model */
+    void Generator::Init(S2TConfig& myConfig, S2TModel& myModel)
+    {
+        cout << "----- Generator Init -----" << endl;
+        model = &myModel;
+        config = &myConfig;
+
+        cout << "--- Generator Init End ---" << endl;
+    }
+
+    bool Generator::TestTranslate()
+    {
+        // Pad audio 30s at right
+
+        // extract fbank feature
+
+        // Load test data from file for test
+        XTensor test_audio_pad;
+        InitTensor2D(&test_audio_pad, 80, 4100, X_FLOAT);
+        FILE* audioFile = fopen(config->inference.inputFN, "rb");
+        if (audioFile) {
+            test_audio_pad.BinaryRead(audioFile);
+        }
+        test_audio_pad.Dump(stderr, NULL, 10);
+        
+        if (audioFile)
+            fclose(audioFile);
+
+        // preprocess
+
+        
+
+
+        return 1;
+    }
+
 }
