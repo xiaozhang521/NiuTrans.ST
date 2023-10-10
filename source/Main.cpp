@@ -46,6 +46,8 @@ int main(int argc, const char** argv)
     model.InitModel(config);
     config.showConfig();
 
+    model.TestDumpParams(&model.encoder->selfAtts[1].weightQ);
+
     cout << "Tgt Vocab File: " << config.common.tgtVocabFN << endl;
     S2TVocab vocab;
     vocab.Load(config.common.tgtVocabFN);
@@ -54,7 +56,8 @@ int main(int argc, const char** argv)
 
 
     Generator generator;
-    //generator.Init(config, model);
+    generator.Init(config, model);
+    generator.TestTranslate();
     //generator.generate(); 
     // 
     /*****************************Old entrance******************************/
