@@ -28,6 +28,7 @@
 #include "../nmt/submodel/Output.h"
 #include "../niutensor/train/XModel.h"
 using namespace nts;
+
   /* the s2t namespace */
 namespace s2t
 {
@@ -121,6 +122,10 @@ namespace s2t
 
     //    /* run the neural network (overloaded method of XModel) */
     //    bool RunSimple(XList* inputs, XList* outputs, XList* golds, XList* losses);
+    
+    //
+        void TestDumpParams(XTensor* params);
+    
     };
 
 } /* end of the s2t namespace */

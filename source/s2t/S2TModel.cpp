@@ -428,7 +428,10 @@ namespace s2t
 
     }
 
-
+    void S2TModel::TestDumpParams(XTensor* params)
+    {
+        params->Dump(stderr, NULL, 5);
+    }
 
 
 } /* end of the s2t namespace */
