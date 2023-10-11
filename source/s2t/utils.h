@@ -13,6 +13,11 @@ namespace s2t {
 #define M_PI 3.1415926535897932384626433832795
 #endif
 
+    template<typename Real> inline void ComplexAddProduct(const Real& a_re, const Real& a_im, const Real& b_re, const Real& b_im, Real* c_re, Real* c_im) {
+        *c_re += b_re * a_re - b_im * a_im;
+        *c_im += b_re * a_im + b_im * a_re;
+    }
+
 #define SWAP8(a) do { \
       int t = (reinterpret_cast<char*>(&a))[0];\
               (reinterpret_cast<char*>(&a))[0]=(reinterpret_cast<char*>(&a))[7];\

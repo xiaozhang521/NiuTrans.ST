@@ -130,6 +130,7 @@ namespace s2t {
         // the "bins_" vector is a vector, one for each bin, of a pair:
         // (the first nonzero fft-bin), (the XTensor of weights).
         std::vector<std::pair<INT32, XTensor > > bins_;
+        
 
         bool debug_;
         bool htk_mode_;
@@ -138,12 +139,11 @@ namespace s2t {
     template<typename Real>
     class SplitRadixComplexFft {
     public:
-        typedef INT32 Integer;
 
         // N is the number of complex points (must be a power of two, or this
         // will crash).  Note that the constructor does some work so it's best to
         // initialize the object once and do the computation many times.
-        SplitRadixComplexFft(Integer N);
+        SplitRadixComplexFft(INT32 N);
 
         // Copy constructor
         SplitRadixComplexFft(const SplitRadixComplexFft& other);
@@ -176,13 +176,13 @@ namespace s2t {
         std::vector<Real> temp_buffer_;
     private:
         void ComputeTables();
-        void ComputeRecursive(Real* xr, Real* xi, Integer logn) const;
-        void BitReversePermute(Real* x, Integer logn) const;
+        void ComputeRecursive(Real* xr, Real* xi, INT32 logn) const;
+        void BitReversePermute(Real* x, INT32 logn) const;
 
-        Integer N_;
-        Integer logn_;  // log(N)
+        INT32 N_;
+        INT32 logn_;  // log(N)
 
-        Integer* brseed_;
+        INT32* brseed_;
         // brseed is Evans' seed table, ref:  (Ref: D. M. W.
         // Evans, "An improved digit-reversal permutation algorithm ...",
         // IEEE Trans. ASSP, Aug. 1987, pp. 1120-1125).
