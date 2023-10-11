@@ -286,6 +286,36 @@ namespace s2t {
     }
 
     template<typename Real>
+    void SplitRadixComplexFft<Real>::Compute(Real* x, bool forward,
+        std::vector<Real>* temp_buffer) const {
+        ASSERT(temp_buffer != NULL);
+        if (temp_buffer->size() != N_)
+            temp_buffer->resize(N_);
+        Real* temp_ptr = &((*temp_buffer)[0]);
+        for (INT32 i = 0; i < N_; i++) {
+            x[i] = x[i * 2];  // put the real part in the first half of x.
+            temp_ptr[i] = x[i * 2 + 1];  // put the imaginary part in temp_buffer.
+        }
+        // copy the imaginary part back to the second half of x.
+        memcpy(static_cast<void*>(x + N_),
+            static_cast<void*>(temp_ptr),
+            sizeof(Real) * N_);
+
+        Compute(x, x + N_, forward);
+        // Now change the format back to interleaved.
+        memcpy(static_cast<void*>(temp_ptr),
+            static_cast<void*>(x + N_),
+            sizeof(Real) * N_);
+        for (INT32 i = N_ - 1; i > 0; i--) {  // don't include 0,
+            // in case INT32 is unsigned, the loop would not terminate.
+            // Treat it as a special case.
+            x[i * 2] = x[i];
+            x[i * 2 + 1] = temp_ptr[i];
+        }
+        x[1] = temp_ptr[0];  // special case of i = 0.
+    }
+
+    template<typename Real>
     void SplitRadixRealFft<Real>::Compute(Real* data, bool forward) {
         Compute(data, forward, &this->temp_buffer_);
     }
@@ -299,8 +329,8 @@ namespace s2t {
 
         Real rootNRe, rootNIm;  // exp(-2pi/N), forward; exp(2pi/N), backward
         int forward_sign = forward ? -1 : 1;
-        rootNRe = std::cos(M_2PI / N * forward_sign);
-        rootNIm = std::sin(M_2PI / N * forward_sign);
+        rootNRe = cos(M_2PI / N * forward_sign);
+        rootNIm = sin(M_2PI / N * forward_sign);
         Real kNRe = -forward_sign, kNIm = 0.0;  // exp(-2pik/N), forward; exp(-2pik/N), backward
         // kN starts out as 1.0 for forward algorithm but -1.0 for backward.
         for (INT32 k = 1; 2 * k <= N2; k++) {
@@ -354,6 +384,7 @@ namespace s2t {
                 data[1] /= 2;
             }
         }
+        
         if (!forward) {  // call to base class
             SplitRadixComplexFft<Real>::Compute(data, false, temp_buffer);
             for (INT32 i = 0; i < N; i++)
@@ -362,6 +393,7 @@ namespace s2t {
             // otherwise get from [ComplexFft, forward] + [ComplexFft, backward] in dimension N/2.
             // It's for consistency with our normal FFT convensions.
         }
+        
     }
 
     template<typename Real>
