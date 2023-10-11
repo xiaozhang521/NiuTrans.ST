@@ -360,7 +360,7 @@ namespace s2t {
             if (header.ReverseBytes())
                 SWAP2(k);
             //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            float torchK = k / 3333.3333333333333333333333333333333333333333;
+            float torchK = k / 33333.3333333333333333333333333333333333333333;
             data_.Set1D(torchK, i);
                 //data_[j, i] = k;
                 //data_(j, i) = k;
