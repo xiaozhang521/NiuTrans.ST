@@ -70,10 +70,12 @@ namespace s2t{
     XTensor Extractor::Make(XTensor& input)
     {
         XTensor outFeature;
-        outFeature = Conv1DBias(input, kernels[0], biases[0], convStrides[0]);
+        outFeature = Conv1DBias(input, kernels[0], biases[0], convStrides[0], 1);
+        outFeature.Dump(stderr, "Cov1 output is: ", 10);
         for (int i = 1;i<nConv; ++i) 
         {
-            outFeature = Conv1DBias(outFeature, kernels[i], biases[i], convStrides[i]);
+            outFeature = Conv1DBias(outFeature, kernels[i], biases[i], convStrides[i], 1);
+            outFeature.Dump(stderr, "Cov>1 output is: ", 10);
         }
         return outFeature;
     }
