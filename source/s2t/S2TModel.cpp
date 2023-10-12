@@ -433,5 +433,20 @@ namespace s2t
         params->Dump(stderr, NULL, 5);
     }
 
+    /*
+    make the mask of the encoder
+    >> paddingEnc - padding of the encoder input, (batchSize, srcLen)
+    >> maskEnc - mask of the encoder self-attention, (headNum, batchSize, srcLen, srcLen)
+    */
+    void S2TModel::MakeS2TMaskEnc(XTensor& paddingEnc, XTensor& maskEnc)
+    {
+        XTensor padding2;
+
+        /* mask of the padding */
+        Unsqueeze(paddingEnc, padding2, paddingEnc.order - 1, paddingEnc.GetDim(-1));
+        Unsqueeze(padding2, maskEnc, 0, config->model.encSelfAttHeadNum);
+        ScaleAndShiftMe(maskEnc, 1e9F, -1e9F);
+    }
+
 
 } /* end of the s2t namespace */
