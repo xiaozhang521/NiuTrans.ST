@@ -42,6 +42,9 @@ public:
 
     /* initialize the model */
     void InitModel(S2TConfig& config);
+
+    /* run encoding for inference with post-norm */
+    XTensor RunFastPostNorm(XTensor& input, XTensor* mask);
 };
 }
 #endif

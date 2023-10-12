@@ -80,4 +80,48 @@ namespace s2t
             fnnLayerNorms[i].InitModel(config, devID, embDim, config.model.encoderL1Norm);
         }
     }
+
+    XTensor S2TAttEncoder::RunFastPostNorm(XTensor& input, XTensor* mask)
+    {
+
+        XTensor x = input;
+
+        // conv
+        x = Transpose(x, 1, 2);
+        x = extractor->Make(x);
+        x = Transpose(x, 1, 2);
+
+
+        for (int i = 0; i < nlayer; i++) {
+
+            XTensor selfAtt;
+
+            /* self attention */
+            //selfAtt = selfAtts[i].Make(x, x, x, mask, NULL, SELF_ATT);
+
+            /* residual connection */
+            //SumMe(selfAtt, x);
+
+            /* layer normalization with post-norm for self-attn */
+            //selfAtt = attLayerNorms[i].Run(selfAtt);
+
+            /* ffn */
+            //x = ffns[i].Make(selfAtt);
+
+            /* residual connection */
+            //SumMe(x, selfAtt);
+
+            /* layer normalization with post-norm for ffn */
+            //x = fnnLayerNorms[i].Run(x);
+
+        }
+
+        /* clear the history while not training */
+
+        if (finalNorm) {
+            // return encoderLayerNorm->Run(x); 
+        }
+
+        return x;
+    }
 }
