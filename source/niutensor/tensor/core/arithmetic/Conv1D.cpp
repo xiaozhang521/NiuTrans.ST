@@ -246,7 +246,7 @@ XTensor Conv1DBias(const XTensor &input, const XTensor &weight, const XTensor &b
     
     XTensor output;
 
-    int outputLength = (input.GetDim(2) + 2 * padding - weight.GetDim(2) / stride) + 1;
+    int outputLength = ((input.GetDim(2) + 2 * padding - weight.GetDim(2)) / stride) + 1;
 
     InitTensor3D(&output, input.GetDim(0), weight.GetDim(0), outputLength, X_FLOAT, input.devID);
     output.SetTMPFlag();
