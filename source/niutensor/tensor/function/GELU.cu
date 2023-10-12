@@ -42,10 +42,10 @@ void KernelGELU(T * x, T * y, int size)
 
     if (i < size) {
         T x_val = x[i];
+        // 1.414213562373095145475 1.128379167095512558561
         //T sqrt_2_over_pi = (T)sqrt(2.0 / M_PI);
         //T sqrt_2_over_pi = 1.414213562373095145475 * (1.0 / (T)sqrt(M_PI));
-        T sqrt_2_over_pi = M_1_SQRTPI * M_SQRT2;
-        //T sqrt_2_over_pi = 0.707106781186547572737 * 1.128379167095512558561;
+        T sqrt_2_over_pi = 0.707106781186547572737 * 1.128379167095512558561;
         T scale = (T)0.5;
         T tanh_val = tanh(sqrt_2_over_pi * ((T)0.044715 * x_val * x_val * x_val + x_val));
         y[i] = scale * (x_val * tanh_val + x_val);
