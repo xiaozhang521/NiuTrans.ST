@@ -29,7 +29,8 @@ namespace nts{ // namespace nts(NiuTrans.Tensor)
 #ifdef USE_CUDA
 
 #define M_PI       3.14159265358979323846   // pi
-
+#define  M_1_SQRTPI      0.5641895835477563
+#define  M_SQRT2         1.414213562373095145475
 /* rectify function y = max(0, x) (Cuda version) */
 void _CudaGELU(const XTensor * input, XTensor * output);
 
