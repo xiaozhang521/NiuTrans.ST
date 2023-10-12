@@ -27,6 +27,7 @@
 #include "./s2t/S2TModel.h"
 #include "./s2t/generate/Generator.h"
 #include "./s2t/S2TVocab.h"
+#include "niutensor/tensor/function/GELU.h"
 
 
 using namespace nmt;
@@ -41,7 +42,7 @@ int main(int argc, const char** argv)
     if (argc == 0)
         return 1;
     /* load configurations */
-    S2TConfig config(argc, argv);
+    /*S2TConfig config(argc, argv);
     S2TModel model;
     model.InitModel(config);
     config.showConfig();
@@ -57,7 +58,16 @@ int main(int argc, const char** argv)
 
     Generator generator;
     generator.Init(config, model);
-    generator.TestTranslate();
+    generator.TestTranslate();*/
+
+    float a[20] = { -7.775555e-01, -7.483220e-01,-7.483220e-01,-7.483220e-01,-7.483220e-01,-7.483220e-01,-7.483220e-01,-7.483220e-01,-7.483220e-01,-7.486424e-01,-7.498121e-01,-7.468143e-01,-7.395701e-01,-8.399765e-01,-1.032664e+00,-1.253703e+00,-1.278807e+00,-1.145470e+00,-9.983076e-01,-8.426485e-01 };
+    XTensor input;
+    InitTensor2D(&input, 1, 20, X_FLOAT, 0);
+    input.SetData(a, input.unitNum);
+    input.Dump();
+    XTensor output;
+    output = GELU(input);
+    output.Dump();
     //generator.generate(); 
     // 
     /*****************************Old entrance******************************/
