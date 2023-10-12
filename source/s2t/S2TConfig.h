@@ -55,6 +55,22 @@ namespace s2t
         void Load(int argsNum, const char** args);
     };
 
+    /* whisper decoding configuration */
+    class WhisperDecConig
+    {
+    public:
+
+        string task = "transcribe";
+        string language = "en";     // zh
+        float temperature = 0.0;
+        float no_speech_threshold = 0.6;
+        float logprob_threshold = -1.0;
+        float compression_ratio_threshold = 2.4;
+
+    };
+
+
+
     /* inference configuration */
     class InferenceConfig : public TranslationConfig
     {
@@ -78,6 +94,8 @@ namespace s2t
 
         /* inference configuration */
         InferenceConfig inference;
+        /* whisper decoding configuration */
+        WhisperDecConig whisperdec;
 
     public:
         /* load configuration from the command */
