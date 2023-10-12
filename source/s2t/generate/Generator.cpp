@@ -55,29 +55,75 @@ namespace s2t
         cout << "--- Generator Init End ---" << endl;
     }
 
-    bool Generator::TestTranslate()
+    XTensor Generator::DecodingBatch(XTensor& batchEnc, XTensor& paddingEnc)
     {
+        // change single to batch
+        bool isSingle = 0;
+        if (batchEnc.order == 2) {
+            isSingle = 1;
+            int dim[3] = { 1, batchEnc.dimSize[0], batchEnc.dimSize[1] };
+            batchEnc.Reshape(3, dim);
+        }
+
+        // begin decoding task
+        int batchSize = batchEnc.GetDim(0);
+        for (int i = 0; i < model->decoder->nlayer; ++i) {
+            model->decoder->selfAttCache[i].miss = true;
+            model->decoder->enDeAttCache[i].miss = true;
+        }
+        
+        // encoder forward   *** should be in searcher, here test
+        XTensor maskEnc;
+        
+        // encoder mask for test
+        model->MakeS2TMaskEnc(paddingEnc, maskEnc);
+
+        XTensor encoding;
+        encoding = model->encoder->RunFastPostNorm(batchEnc, &maskEnc);
+
+        encoding.Dump(stderr, "Encoder output is: ", 100);
+
+        FILE* outputFile = fopen(config->inference.outputFN, "wb");
+        encoding.BinaryDump(outputFile);
+
+
+
+
+        if (isSingle)
+            return batchEnc;
+        else {
+            int dim[2] = { batchEnc.dimSize[1], batchEnc.dimSize[2] };
+            batchEnc.Reshape(2, dim);
+            return batchEnc;
+        }
+            
+    }
+
+
+
+
+    bool Generator::TestInference()         // not work for batch
+    {
+        
         // Pad audio 30s at right
 
         // extract fbank feature
 
         // Load test data from file for test
         XTensor test_audio_pad;
-        InitTensor2D(&test_audio_pad, 80, 4100, X_FLOAT);
+        InitTensor2D(&test_audio_pad, 3000, 80, X_FLOAT, config->common.devID);    // b * l * f
         FILE* audioFile = fopen(config->inference.inputFN, "rb");
         if (audioFile) {
             test_audio_pad.BinaryRead(audioFile);
         }
-        test_audio_pad.Dump(stderr, NULL, 10);
-        
-        if (audioFile)
-            fclose(audioFile);
 
-        // preprocess
+        XTensor paddingEnc;
+        // init pad  for test
+        InitTensor2D(&paddingEnc, 1, test_audio_pad.dimSize[0], X_INT, test_audio_pad.devID);
+        paddingEnc = paddingEnc + 1;
 
-        
-
-
+        DecodingBatch(test_audio_pad, paddingEnc);
+            
         return 1;
     }
 

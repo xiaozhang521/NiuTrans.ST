@@ -36,9 +36,6 @@ namespace s2t
 
     class Generator
     {
-    //private:
-        /* translate a batch of sequences */
-        //void TranslateBatch(XTensor& batchEnc, XTensor& paddingEnc, IntList& indices);
 
     private:
         /* the translation model */
@@ -56,6 +53,12 @@ namespace s2t
         /* output buffer */
         XList* outputBuf;
 
+    private:
+        /* translate a batch of sequences */
+        XTensor DecodingBatch(XTensor& batchEnc, XTensor& paddingEnc);
+
+
+
     public:
         /* constructor */
         Generator();
@@ -69,7 +72,7 @@ namespace s2t
         ///* the translation function */
         //bool Translate();
 
-        bool TestTranslate();
+        bool TestInference();
 
         ///* sort the outputs by the indices (in ascending order) */
         //void SortOutputs();
