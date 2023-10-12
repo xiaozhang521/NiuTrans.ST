@@ -72,16 +72,12 @@ namespace s2t{
     {
         XTensor outFeature;
         outFeature = Conv1DBias(input, kernels[0], biases[0], convStrides[0], 1);
-        outFeature.Dump(stderr, "Cov1 output is: ", 20);
         outFeature = GELU(outFeature);
-        outFeature.Dump(stderr, "gelu1 output is: ", 20);
         for (int i = 1;i<nConv; ++i) 
         {
             outFeature = Conv1DBias(outFeature, kernels[i], biases[i], convStrides[i], 1);
-            outFeature.Dump(stderr, "Cov>1 output is: ", 20);
             outFeature = GELU(outFeature);
-            outFeature.Dump(stderr, "gelu>1 output is: ", 20);
-        }
+            }
         return outFeature;
     }
 }
