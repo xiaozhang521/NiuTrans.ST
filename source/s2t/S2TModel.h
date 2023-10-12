@@ -91,7 +91,7 @@ namespace s2t
     //        XTensor& maskEnc, XTensor& maskDec, XTensor& maskEncDec);
 
     //    /* make the mask of the encoder */
-    //    void MakeMTMaskEnc(XTensor& paddingEnc, XTensor& maskEnc);
+        void MakeS2TMaskEnc(XTensor& paddingEnc, XTensor& maskEnc);
 
     //    /* make the mask of the decoder */
     //    void MakeMTMaskDec(XTensor& paddingEnc, XTensor& paddingDec,
