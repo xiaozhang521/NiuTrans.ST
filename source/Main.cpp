@@ -75,10 +75,10 @@ int main(int argc, const char** argv)
     // vocab.ShowVocab();
     vocab.Test();
 
-
     Generator generator;
     generator.Init(config, model);
-    generator.TestTranslate();*/
+    generator.TestInference();
+
 
     //generator.generate(); 
     // 
