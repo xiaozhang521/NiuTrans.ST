@@ -25,6 +25,7 @@
 #include "./nmt/translate/Translator.h"
 #include "./s2t/WaveLoader.h"
 #include "./s2t/FeatureWindow.h"
+#include "./s2t/Fbank.h"
 
 
 using namespace nmt;
@@ -43,9 +44,20 @@ int main(int argc, const char** argv)
     class WaveData data;
     data.Read(inFile);
     struct FrameExtractionOptions opt;
-    class OfflineFeatureTpl<FrameExtractionOptions> oft(opt);
+    struct FbankOptions fOpts;
+    class FbankComputer computer(fOpts);
+    class OfflineFeatureTpl<FbankComputer> oft(computer);
     XTensor out;
+    
     oft.ComputeFeatures(data.Data(), data.SampFreq(), 1.0, &out);
+    
+    //for (int i = 0; i < out->GetDim(0); i++) {
+    //    for (int j = 0; j < out->GetDim(1); j++) {
+
+    //        cout << out->Get2D(i, j) << " ";
+    //    }
+    //    cout << endl;
+    //}
     return 0;
     //--------------------------Load Wave--------------------------
     //std::ios_base::sync_with_stdio(false);

@@ -19,8 +19,8 @@
   * $Created by: HE Erfeng (heerfeng1023@gmail.com) 2023-10
   */
 
-#ifndef __WAVE_LOADER__
-#define __WAVE_LOADER__
+#ifndef __FBANK__
+#define __FBANK__
 
 #include <stdint.h>
 #include "../niutensor/tensor/XTensor.h"
@@ -64,7 +64,7 @@ namespace s2t {
             // defaults the #mel-banks to 23 for the FBANK computations.
             // this seems to be common for 16khz-sampled data,
             // but for 8khz-sampled data, 15 may be better.
-            use_energy(false),
+            use_energy(true),
             energy_floor(0.0),
             raw_energy(true),
             htk_compat(false),

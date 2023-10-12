@@ -49,6 +49,7 @@ namespace s2t {
         bool allow_downsample;
         bool allow_upsample;
         int max_feature_vectors;
+        int torchPaddingLength; // In default, it will be half of frame length.
         FrameExtractionOptions(const FrameExtractionOptions& opts ) {
             samp_freq = opts.samp_freq;
             frame_shift_ms = opts.frame_shift_ms;
@@ -57,13 +58,15 @@ namespace s2t {
             preemph_coeff = opts.preemph_coeff;
             remove_dc_offset = opts.remove_dc_offset;
             window_type = opts.window_type;
+            snip_edges = opts.snip_edges;
+            torchPaddingLength = opts.torchPaddingLength;
         }
 
         FrameExtractionOptions() :
             samp_freq(16000),
             frame_shift_ms(10.0),
             frame_length_ms(25.0),
-            dither(1.0),
+            dither(0.0),
             preemph_coeff(0.97),
             remove_dc_offset(true),
             window_type("hanning"),
@@ -72,7 +75,8 @@ namespace s2t {
             snip_edges(true),
             allow_downsample(false),
             allow_upsample(false),
-            max_feature_vectors(-1)
+            max_feature_vectors(-1),
+            torchPaddingLength(0)
         { }
         INT32 WindowShift() const {
             return static_cast<INT32>(samp_freq * 0.001 * frame_shift_ms);
@@ -159,7 +163,7 @@ namespace s2t {
      */
     void ProcessWindow(const FrameExtractionOptions& opts,
         const FeatureWindowFunction& window_function,
-        XTensor window,
+        XTensor &window,
         float* log_energy_pre_window = NULL);
 
 
@@ -192,7 +196,7 @@ namespace s2t {
         INT32 f,
         const FrameExtractionOptions& opts,
         const FeatureWindowFunction& window_function,
-        XTensor window,
+        XTensor &window,
         float* log_energy_pre_window = NULL);
 
 
@@ -224,7 +228,7 @@ namespace s2t {
         // using the options class, that we cache at this level.
         OfflineFeatureTpl(const Options& opts) :
             computer_(opts),
-            feature_window_function_(opts) { }
+            feature_window_function_(computer_.GetFrameOptions()) { }
 
         // Internal (and back-compatibility) interface for computing features, which
         // requires that the user has already checked that the sampling frequency
@@ -282,20 +286,34 @@ namespace s2t {
         float vtln_warp,
         XTensor* output) {
         ASSERT(output != NULL);
-        float new_sample_freq = computer_.samp_freq;
+        float new_sample_freq = computer_.GetFrameOptions().samp_freq;
+        if (computer_.GetFrameOptions().torchPaddingLength != 0) {
+            XTensor temp;
+            int paddingDimSize = { wave.GetDim(0) + computer_.GetFrameOptions().torchPaddingLength * 2  };
+            temp.Resize(1, &paddingDimSize);
+            temp.SetZeroAll();
+            int index = { 0 };
+            temp.SetData(wave.GetCell(&index, 1), wave.GetDim(0), computer_.GetFrameOptions().torchPaddingLength);
+            if (sample_freq == new_sample_freq) {
+                Compute(temp, vtln_warp, output);
+            }
+            else {
+                ASSERT(FALSE);
+            }
+        }
         if (sample_freq == new_sample_freq) {
             Compute(wave, vtln_warp, output);
         }
         else {
             if (new_sample_freq < sample_freq &&
-                !computer_.allow_downsample)
+                !computer_.GetFrameOptions().samp_freq)
                 ASSERT(FALSE);
                 //KALDI_ERR << "Waveform and config sample Frequency mismatch: "
                 //<< sample_freq << " .vs " << new_sample_freq
                 //<< " (use --allow-downsample=true to allow "
                 //<< " downsampling the waveform).";
             else if (new_sample_freq > sample_freq &&
-                !computer_.allow_upsample)
+                !computer_.GetFrameOptions().samp_freq)
                 ASSERT(FALSE);
                 //KALDI_ERR << "Waveform and config sample Frequency mismatch: "
                 //<< sample_freq << " .vs " << new_sample_freq
@@ -316,8 +334,11 @@ namespace s2t {
         float vtln_warp,
         XTensor* output) {
         ASSERT(output != NULL);
-        INT32 rows_out = NumFrames(wave.GetDim(0), computer_),
-            cols_out = 80;
+
+        // This is the final dimension 
+        INT32 rows_out = NumFrames(wave.GetDim(0), computer_.GetFrameOptions());
+        INT32 cols_out = computer_.Dim();
+
         if (rows_out == 0) {
             output->Reshape(0,0);
             return;
@@ -325,18 +346,15 @@ namespace s2t {
         int dimSize[] = { rows_out, cols_out };
         output->Resize(2, dimSize, X_FLOAT, 1.0);
         XTensor window;  // windowed waveform.
-        //!!!!!!!!!!!!!!!!!!!
-        bool use_raw_log_energy = TRUE;
-        //bool use_raw_log_energy = computer_.NeedRawLogEnergy();
+        bool use_raw_log_energy = computer_.NeedRawLogEnergy();
+
         for (INT32 r = 0; r < rows_out; r++) {  // r is frame index.
             float raw_log_energy = 0.0;
-            ExtractWindow(0, wave, r, computer_,
-                feature_window_function_, &window,
-                &raw_log_energy);
+            ExtractWindow(0, wave, r, computer_.GetFrameOptions(),
+                feature_window_function_, window, (use_raw_log_energy ? &raw_log_energy : NULL));
 
-            //XTensor output_row(*output, r);
-            //Compute(&window, vtln_warp, &output_row);
-            //Compute(vtln_warp, &window, &output_row);
+            XTensor output_row(*output);
+            computer_.Compute(raw_log_energy, vtln_warp, &window, &output_row);
         }
     }
 

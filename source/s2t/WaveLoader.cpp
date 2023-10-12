@@ -352,6 +352,8 @@ namespace s2t {
             and the size of dim1 is the num of sample.
         */
         int realDimSize[] = {buffer.GetDim(0) / header.BlockAlign()};
+
+        // Pytorch pad the audio by zero, half frame_length at the start and the end
         data_.Resize(header.NumChannels(), realDimSize, X_FLOAT, 1.0);
         for (UINT32 i = 0; i < data_.GetDim(0); ++i) {
             //for (UINT32 j = 0; j < data_.GetDim(0); ++j) {
@@ -360,7 +362,7 @@ namespace s2t {
             if (header.ReverseBytes())
                 SWAP2(k);
             //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            float torchK = k / 33333.3333333333333333333333333333333333333333;
+            double torchK = k / 33333.3333333333333333333333333333333333333333;
             data_.Set1D(torchK, i);
                 //data_[j, i] = k;
                 //data_(j, i) = k;

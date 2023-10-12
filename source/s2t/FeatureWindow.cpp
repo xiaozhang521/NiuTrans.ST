@@ -160,7 +160,7 @@ namespace s2t {
 
     void ProcessWindow(const FrameExtractionOptions& opts,
         const FeatureWindowFunction& window_function,
-        XTensor window,
+        XTensor &window,
         float* log_energy_pre_window) {
         INT32 frame_length = opts.WindowSize();
         ASSERT(window.GetDim(0) == frame_length);
@@ -200,7 +200,7 @@ namespace s2t {
         INT32 f,  // with 0 <= f < NumFrames(feats, opts)
         const FrameExtractionOptions& opts,
         const FeatureWindowFunction& window_function,
-        XTensor window,
+        XTensor &window,
         float* log_energy_pre_window) {
         ASSERT(sample_offset >= 0 && wave.GetDim(0) != 0);
         INT32 frame_length = opts.WindowSize(),
@@ -268,6 +268,7 @@ namespace s2t {
         frame.Resize(1, frameDimSize);
         frame.SetData(window.GetCell(index, 1), frame_length, 0);
         ProcessWindow(opts, window_function, frame, log_energy_pre_window);
+        window.SetData(frame.GetCell(index, 1), frame_length, 0);
     }
 
     signed int RoundUpToNearestPowerOfTwo(signed int n) {

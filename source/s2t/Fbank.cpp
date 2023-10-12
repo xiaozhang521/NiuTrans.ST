@@ -523,7 +523,8 @@ namespace s2t {
         XTensor power_spectrum(signal_frame);
         int dimSize = { signal_frame->GetDim(0) / 2 + 1 };
         power_spectrum.SetDim(&dimSize);
-        power_spectrum.SetData(signal_frame, signal_frame->GetDim(0) / 2 + 1, 0);
+        int index = { 0 };
+        power_spectrum.SetData(signal_frame->GetCell(&index, 1), signal_frame->GetDim(0) / 2 + 1, 0);
 
         // I commented out this code because I haven't found an existing way to root every element of XTensor yet, 
         // and we don't use magnitude for the time being
