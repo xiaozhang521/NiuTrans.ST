@@ -34,6 +34,9 @@ public:
     /*Speech feature extractor*/
     Extractor* extractor;
 
+    /*Postion embedding matrix*/
+    XTensor posEmbeddingBase;
+
     /* constructor */
     S2TAttEncoder();
 

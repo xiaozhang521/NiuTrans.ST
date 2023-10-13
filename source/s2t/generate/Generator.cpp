@@ -83,8 +83,8 @@ namespace s2t
 
         encoding.Dump(stderr, "Encoder output is: ", 100);
 
-        FILE* outputFile = fopen(config->inference.outputFN, "wb");
-        encoding.BinaryDump(outputFile);
+        //FILE* outputFile = fopen(config->inference.outputFN, "wb");
+        //encoding.BinaryDump(outputFile);
 
 
 

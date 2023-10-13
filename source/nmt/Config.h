@@ -40,6 +40,9 @@ namespace nmt
 
 #define MAX_PATH_LEN 1024
 
+#define ReLUFun 0
+#define GELUFun 1
+
 /* training configuration */
 class TrainingConfig : public XConfig
 {
@@ -214,6 +217,9 @@ public:
     /* end symbol */
     int eos;
 
+    /* FFN layer activate function type */
+    int fnnActFunType;
+
     /* if set, add layer norm to the encoder output */
     bool encFinalNorm;
 
@@ -234,6 +240,7 @@ public:
 
     /* dropout rate of attentions */
     float attDropout;
+
 
 public:
     /* load configuration from the command */

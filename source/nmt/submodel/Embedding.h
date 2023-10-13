@@ -88,6 +88,8 @@ public:
     /* make positional embeddings */
     void MakePosEmbedding(int length);
 
+    static void MakePosEmbedding(XTensor posEmbeddingBase, int eSize, int length, int padIdx, int devID);
+
     /* make the network */
     XTensor Make(XTensor& input, bool isDec, int nstep);
 };

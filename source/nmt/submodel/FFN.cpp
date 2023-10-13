@@ -44,6 +44,7 @@ FFN::FFN()
     outSize = -1;
     hSize = -1;
     devID = -1;
+    actFunType = ReLUFun;
     isTraining = false;
 }
 
@@ -65,6 +66,7 @@ void FFN::InitModel(NMTConfig& config, bool isEnc)
     inSize = isEnc ? config.model.encEmbDim : config.model.decEmbDim;
     outSize = isEnc ? config.model.encEmbDim : config.model.decEmbDim;
     hSize = isEnc ? config.model.encFFNHiddenDim : config.model.decFFNHiddenDim;
+    actFunType = config.model.fnnActFunType;
 
     InitTensor2D(&w1, inSize, hSize, X_FLOAT, devID);
     InitTensor1D(&b1, hSize, X_FLOAT, devID);
@@ -92,8 +94,10 @@ XTensor FFN::Make(XTensor& input)
     XTensor t1;
 
     /* t1 = max(0, x * w1 + b1) */
-    t1 = Rectify(MulAndShift(input, w1, b1));
-    
+    if(actFunType == ReLUFun)
+        t1 = Rectify(MulAndShift(input, w1, b1));
+    else if (actFunType == GELUFun)
+        t1 = GELU(MulAndShift(input, w1, b1));
     if (isTraining && dropoutP > 0)
         t1 = Dropout(t1, dropoutP, /*inplace=*/true);
 
