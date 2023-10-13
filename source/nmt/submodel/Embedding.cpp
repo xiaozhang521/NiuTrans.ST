@@ -82,7 +82,7 @@ void Embedder::InitModel(NMTConfig& config, bool isEnc)
     }
 
     /* create the positional embedding matrix */
-    MakePosEmbedding(maxLength);
+    // MakePosEmbedding(maxLength);
 }
 
 /*
@@ -118,7 +118,7 @@ void Embedder::MakePosEmbedding(int length)
     delete[] data;
 }
 
-void Embedder::MakePosEmbedding(XTensor posEmbeddingBase, int eSize, int length, int padIdx, int devID)
+void Embedder::MakePosEmbedding(XTensor &posEmbeddingBase, int eSize, int length, int padIdx, int devID)
 {
     InitTensor2D(&posEmbeddingBase, length, eSize, X_FLOAT, devID);
 
