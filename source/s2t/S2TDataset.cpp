@@ -1,4 +1,4 @@
-/* NiuTrans.NMT - an open-source neural machine translation system.
+/* NiuTrans.S2T - an open-source speech to text system.
  * Copyright (C) 2020 NiuTrans Research. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,29 +16,31 @@
 
 
  /*
-  * $Created by: HU Chi (huchinlp@gmail.com) 2021-06
+  * $Created by: Yuhao Zhang (yoohao.zhang@gmail.com) 2023-10-13
   */
 
 
 #include <algorithm>
-#include "DataSet.h"
+#include "S2TDataSet.h"
 
 using namespace nts;
 
-namespace nmt {
+namespace s2t {
     /* constructor */
-    Sample::Sample(IntList* a, IntList* tg, IntList* tr = NULL, int myKey = -1)
+    TripleSample::TripleSample(FloatList* a, IntList* s, IntList* t, int myKey)
     {
         index = -1;
         audioSeq = a;
-        tgtSeq = tg;
-        translSeq = tr;
+        srcSeq = s;
+        tgtSeq = t;
         bucketKey = myKey;
     }
 
     /* de-constructor */
-    Sample::~Sample()
+    TripleSample::~TripleSample()
     {
+        if (audioSeq != NULL)
+            delete audioSeq;
         if (srcSeq != NULL)
             delete srcSeq;
         if (tgtSeq != NULL)
