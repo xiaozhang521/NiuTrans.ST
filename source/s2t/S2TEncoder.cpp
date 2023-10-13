@@ -72,6 +72,7 @@ namespace s2t
 
         /* initialize the stacked layers */
         //embedder.InitModel(config);
+        embedder.MakePosEmbedding(posEmbeddingBase, config.model.encEmbDim, config.model.maxSrcLen, config.model.pad, config.common.devID);
 
         for (int i = 0; i < nlayer; i++) {
             ffns[i].InitModel(config, true);

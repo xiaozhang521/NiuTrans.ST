@@ -135,6 +135,7 @@ void ModelConfig::Load(int argsNum, const char** args)
     LoadInt("encheads", &encSelfAttHeadNum, 4);
     LoadInt("decheads", &decSelfAttHeadNum, 4);
     LoadInt("encdecheads", &encDecAttHeadNum, 4);
+    LoadInt("fnnactfuntype",&fnnActFunType, ReLUFun);
 
     LoadFloat("dropout", &dropout, 0.3F);
     LoadFloat("ffndropout", &ffnDropout, 0.1F);

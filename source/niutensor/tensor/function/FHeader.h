@@ -35,5 +35,6 @@
 #include "Rectify.h"
 #include "Sigmoid.h"
 #include "Softmax.h"
+#include "GELU.h"
 
 #endif // __FHEADER_H__
