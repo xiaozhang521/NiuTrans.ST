@@ -15,10 +15,6 @@
  */
 
 /*
- * We define the class datasets for audio here.
- * every sub-datasets(e.g.,train, valid, etc.) of dataset should have a manifest
- * It will be overrided for inferrence, just for now.
- * 
  * $Created by: HE Erfeng (heerfeng1023@gmail.com) 2023-09
  * $Modified by: Yuhao Zhang (yoohao.zhang) 2023-10-13
  */
@@ -26,9 +22,6 @@
 #ifndef __S2T_DATASET_H__
 #define __S2T_DATASET_H__
 
-/* 
- * We may need a new config.h and a new namespace for ST
-*/
 
 #include "S2TConfig.h"
 #include "../niutensor/train/XBaseTemplate.h"
@@ -54,8 +47,11 @@ struct TripleSample
 	/* the key of buckets */
 	int bucketKey;
 
+	/* the frame length for every speech */
+	int fLen;
 	/* the sequence of audio (a list of frames) */
-	TensorList* audioSeq;
+	/* currently saved as a tensor, length * channels */
+	XTensor* audioSeq;
 
 	/* the sequence of source sentence (a list of tokens) */
 	IntList* srcSeq;
@@ -64,17 +60,17 @@ struct TripleSample
 	IntList* tgtSeq;
 
 	/* constructor */
-	TripleSample(TensorList* a, IntList* s = NULL, IntList* t = NULL, int myKey = -1);
+	TripleSample(XTensor* a, IntList* s = NULL, IntList* t = NULL, int myKey = -1);
 
 	/* de-constructor */
 	~TripleSample();
 };
 
 /* the base class of datasets used in Niutrans.ST */
-class AudioDataSetBase : public DataDistributeBase
+class S2TDataSetBase : public DataDistributeBase
 {
 public:
-	/* frame counter*/
+	/* frame-counter*/
 	int fc;
 
 	/* word-counter */
@@ -125,27 +121,27 @@ public:
 
 public:
 	/* constructor */
-	AudioDataSetBase();
+	S2TDataSetBase();
 
 	/* load the samples into the buffer (a list) */
 	virtual
-		bool LoadBatchToBuf() = 0;
+	bool LoadBatchToBuf() = 0;
 
 	/* initialization function */
 	virtual
-		void Init(S2TConfig& myConfig, bool isTraining) = 0;
+	void Init(S2TConfig& myConfig, bool isTraining) = 0;
 
 	/* load a sample from the file stream  */
 	virtual
-		TripleSample* LoadSample() = 0;
+	TripleSample* LoadSample() = 0;
 
 	/* load a mini-batch from the buffer */
 	virtual
-		bool GetBatchSimple(XList* inputs, XList* golds = NULL) = 0;
+	bool GetBatchSimple(XList* inputs, XList* golds = NULL) = 0;
 
 	/* de-constructor */
-	~AudioDataSetBase();
+	~S2TDataSetBase();
 };
 
 } /* end of s2t namespace */
-#endif /* __AUDIO_DATASET_H__ */
+#endif /* __S2T_DATASET_H__ */

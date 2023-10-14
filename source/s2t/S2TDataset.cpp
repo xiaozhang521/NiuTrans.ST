@@ -29,19 +29,19 @@ using namespace nts;
 namespace s2t {
 
 /* get the maximum source sentence length in a range of buffer */
-int AudioDataSetBase::MaxAudioLen(int begin, int end) {
+int S2TDataSetBase::MaxAudioLen(int begin, int end) {
     CheckNTErrors((end > begin) && (begin >= 0)
         && (end <= buf->count), "Invalid range");
     int maxLen = 0;
     for (int i = begin; i < end; i++) {
-        TensorList* audioSeq = ((TripleSample*)buf->Get(i))->audioSeq;
-        maxLen = MAX(int(audioSeq->Size()), maxLen);
+        int fLen = ((TripleSample*)buf->Get(i))->fLen;
+        maxLen = MAX(fLen, maxLen);
     }
     return maxLen;
 }
 
 /* get the maximum target sentence length in a range of buffer */
-int AudioDataSetBase::MaxTgtLen(int begin, int end) {
+int S2TDataSetBase::MaxTgtLen(int begin, int end) {
     CheckNTErrors((end > begin) && (begin >= 0)
         && (end <= buf->count), "Invalid range");
     int maxLen = 0;
@@ -53,7 +53,7 @@ int AudioDataSetBase::MaxTgtLen(int begin, int end) {
 }
 
 /* get the maximum source sentence length in a range of buffer */
-int AudioDataSetBase::MaxSrcLen(int begin, int end) {
+int S2TDataSetBase::MaxSrcLen(int begin, int end) {
     CheckNTErrors((end > begin) && (begin >= 0)
         && (end <= buf->count), "Invalid range");
     int maxLen = 0;
@@ -65,16 +65,16 @@ int AudioDataSetBase::MaxSrcLen(int begin, int end) {
 }
 
 /* sort the buffer by audio length (in ascending order) */
-void AudioDataSetBase::SortByAudioLengthAscending() {
+void S2TDataSetBase::SortByAudioLengthAscending() {
     stable_sort(buf->items, buf->items + buf->count,
         [](void* a, void* b) {
-            return ((TripleSample*)(a))->audioSeq->Size() <
-                ((TripleSample*)(b))->audioSeq->Size();
+            return ((TripleSample*)(a))->fLen <
+                ((TripleSample*)(b))->fLen;
         });
 }
 
 /* sort the buffer by target sentence length (in ascending order) */
-void AudioDataSetBase::SortByTgtLengthAscending()
+void S2TDataSetBase::SortByTgtLengthAscending()
 {
     stable_sort(buf->items, buf->items + buf->count,
         [](void* a, void* b) {
@@ -84,7 +84,7 @@ void AudioDataSetBase::SortByTgtLengthAscending()
 }
 
 /* sort the buffer by source sentence length (in ascending order) */
-void AudioDataSetBase::SortBySrcLengthAscending() {
+void S2TDataSetBase::SortBySrcLengthAscending() {
     stable_sort(buf->items, buf->items + buf->count,
         [](void* a, void* b) {
             return ((TripleSample*)(a))->srcSeq->Size() <
@@ -93,16 +93,16 @@ void AudioDataSetBase::SortBySrcLengthAscending() {
 }
 
 /* sort the buffer by audio length (in descending order) */
-void AudioDataSetBase::SortByAudioLengthDescending() {
+void S2TDataSetBase::SortByAudioLengthDescending() {
     stable_sort(buf->items, buf->items + buf->count,
         [](void* a, void* b) {
-            return ((TripleSample*)(a))->audioSeq->Size() >
-                ((TripleSample*)(b))->audioSeq->Size();
+            return ((TripleSample*)(a))->fLen >
+                ((TripleSample*)(b))->fLen;
         });
 }
 
 /* sort the buffer by target sentence length (in descending order) */
-void AudioDataSetBase::SortByTgtLengthDescending()
+void S2TDataSetBase::SortByTgtLengthDescending()
 {
     stable_sort(buf->items, buf->items + buf->count,
         [](void* a, void* b) {
@@ -112,7 +112,7 @@ void AudioDataSetBase::SortByTgtLengthDescending()
 }
 
 /* sort the buffer by source sentence length (in descending order) */
-void AudioDataSetBase::SortBySrcLengthDescending() {
+void S2TDataSetBase::SortBySrcLengthDescending() {
     stable_sort(buf->items, buf->items + buf->count,
         [](void* a, void* b) {
             return ((TripleSample*)(a))->srcSeq->Size() >
@@ -124,7 +124,7 @@ void AudioDataSetBase::SortBySrcLengthDescending() {
 clear the buffer
 >> buf - the buffer (list) of samples
 */
-void AudioDataSetBase::ClearBuf()
+void S2TDataSetBase::ClearBuf()
 {
     bufIdx = 0;
     for (int i = 0; i < buf->count; i++) {
@@ -135,7 +135,7 @@ void AudioDataSetBase::ClearBuf()
 }
 
 /* constructor */
-AudioDataSetBase::AudioDataSetBase()
+S2TDataSetBase::S2TDataSetBase()
 {
     fc = 0;
     wc = 0;
@@ -146,7 +146,7 @@ AudioDataSetBase::AudioDataSetBase()
 }
 
 /* de-constructor */
-AudioDataSetBase::~AudioDataSetBase()
+S2TDataSetBase::~S2TDataSetBase()
 {
     if (buf != NULL) {
         ClearBuf();
@@ -155,11 +155,12 @@ AudioDataSetBase::~AudioDataSetBase()
 }
 
 /* constructor */
-TripleSample::TripleSample(TensorList* a, IntList* s, IntList* t, int myKey) {
+TripleSample::TripleSample(XTensor * a, IntList * s, IntList * t, int myKey) {
     index = -1;
     audioSeq = a;
     srcSeq = s;
     tgtSeq = t;
+    fLen = a->dimSize[0];
     bucketKey = myKey;
 }
 
