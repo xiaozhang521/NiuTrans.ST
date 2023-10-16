@@ -34,6 +34,8 @@ using namespace nts;
 
 int main(int argc, const char** argv)
 {
+    ASSERT(FALSE);
+
     //--------------------------Load Wave--------------------------
     ifstream inFile("C:\\Code\\VS\\NiuTrans.ST\\test.wav", ios::in | ios::binary);
     if (!inFile) {

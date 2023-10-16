@@ -17,10 +17,10 @@ namespace s2t {
 #define M_PI 3.1415926535897932384626433832795
 #endif
 
-    template<typename Real> inline void ComplexAddProduct(const Real& a_re, const Real& a_im, const Real& b_re, const Real& b_im, Real* c_re, Real* c_im) {
-        *c_re += b_re * a_re - b_im * a_im;
-        *c_im += b_re * a_im + b_im * a_re;
-    }
+#ifndef COMPLEXFFT_BLOCKSIZE
+#define COMPLEXFFT_BLOCKSIZE 8192
+#endif // !COMPLEXFFT_BLOCKSIZE
+
 
 #define SWAP8(a) do { \
       int t = (reinterpret_cast<char*>(&a))[0];\
@@ -52,6 +52,20 @@ namespace s2t {
         else                                                                       \
           std::cout << "Assert ERROR";       \
       } while (0)
+
+#ifdef _MSC_VER
+#define __func__ __FUNCTION__
+#endif
+
+#ifndef ASSERT
+#define ASSERT(cond)
+    do {
+        if (cond)
+            (void)0;
+        else
+            fprintf(stderr, __func__, __FILE__, __LINE__, #cond);
+    }while(0)
+#endif // !ASSERT
 
 
 }
