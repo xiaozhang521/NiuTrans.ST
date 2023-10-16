@@ -166,8 +166,8 @@ TripleSample::TripleSample(XTensor * a, IntList * s, IntList * t, int myKey) {
 
 /* de-constructor */
 TripleSample::~TripleSample() {
-    if (audioSeq != NULL)
-        delete audioSeq;
+    //if (audioSeq != NULL)
+    //    delete audioSeq;
     if (srcSeq != NULL)
         delete srcSeq;
     if (tgtSeq != NULL)

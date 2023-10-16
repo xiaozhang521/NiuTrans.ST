@@ -100,7 +100,11 @@ namespace s2t
             
     }
 
-
+    bool Generator::Generate()
+    {
+        batchLoader.Init(*config, false);
+        return true;
+    }
 
 
     bool Generator::TestInference()         // not work for batch

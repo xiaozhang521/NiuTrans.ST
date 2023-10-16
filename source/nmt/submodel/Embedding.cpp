@@ -82,6 +82,7 @@ void Embedder::InitModel(NMTConfig& config, bool isEnc)
     }
 
     /* create the positional embedding matrix */
+    /*TODO!!!*/
     // MakePosEmbedding(maxLength);
 }
 
