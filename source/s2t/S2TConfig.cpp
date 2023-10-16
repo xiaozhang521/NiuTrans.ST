@@ -144,7 +144,7 @@ namespace s2t
         cout << "\t| " << "decSelfAttHeadNum = " << model.decSelfAttHeadNum << endl;
         cout << "\t| " << "encDecAttHeadNum = " << model.encDecAttHeadNum << endl;
         cout << "\t| " << "decFFNHiddenDim = " << model.decFFNHiddenDim << endl;
-
+        cout << "\t| " << "fnnActFunType = " << model.fnnActFunType << endl;
 
 
 

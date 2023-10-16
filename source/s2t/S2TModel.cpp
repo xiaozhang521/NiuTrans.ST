@@ -59,6 +59,7 @@ namespace s2t
             &(config->model.decSelfAttHeadNum),
             &(config->model.encDecAttHeadNum),
             &(config->model.decFFNHiddenDim),
+            &(config->model.fnnActFunType),
         };
 
         return intConfig;
