@@ -1,4 +1,4 @@
-/* NiuTrans.NMT - an open-source neural machine translation system.
+/* NiuTrans.S2T - an open-source speech to text system.
  * Copyright (C) 2020 NiuTrans Research. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,32 +16,162 @@
 
 
  /*
-  * $Created by: HU Chi (huchinlp@gmail.com) 2021-06
+  * $Created by: Yuhao Zhang (yoohao.zhang@gmail.com) 2023-10-13
   */
 
 
 #include <algorithm>
-#include "DataSet.h"
+#include "S2TDataSet.h"
 
 using namespace nts;
 
-namespace nmt {
-    /* constructor */
-    Sample::Sample(IntList* a, IntList* tg, IntList* tr = NULL, int myKey = -1)
-    {
-        index = -1;
-        audioSeq = a;
-        tgtSeq = tg;
-        translSeq = tr;
-        bucketKey = myKey;
-    }
+/* the s2t namespace */
+namespace s2t {
 
-    /* de-constructor */
-    Sample::~Sample()
-    {
-        if (srcSeq != NULL)
-            delete srcSeq;
-        if (tgtSeq != NULL)
-            delete tgtSeq;
+/* get the maximum source sentence length in a range of buffer */
+int S2TDataSetBase::MaxAudioLen(int begin, int end) {
+    CheckNTErrors((end > begin) && (begin >= 0)
+        && (end <= buf->count), "Invalid range");
+    int maxLen = 0;
+    for (int i = begin; i < end; i++) {
+        int fLen = ((TripleSample*)buf->Get(i))->fLen;
+        maxLen = MAX(fLen, maxLen);
     }
+    return maxLen;
+}
+
+/* get the maximum target sentence length in a range of buffer */
+int S2TDataSetBase::MaxTgtLen(int begin, int end) {
+    CheckNTErrors((end > begin) && (begin >= 0)
+        && (end <= buf->count), "Invalid range");
+    int maxLen = 0;
+    for (int i = begin; i < end; i++) {
+        IntList* tgtSent = ((TripleSample*)buf->Get(i))->tgtSeq;
+        maxLen = MAX(int(tgtSent->Size()), maxLen);
+    }
+    return maxLen;
+}
+
+/* get the maximum source sentence length in a range of buffer */
+int S2TDataSetBase::MaxSrcLen(int begin, int end) {
+    CheckNTErrors((end > begin) && (begin >= 0)
+        && (end <= buf->count), "Invalid range");
+    int maxLen = 0;
+    for (int i = begin; i < end; i++) {
+        IntList* srcSent = ((TripleSample*)buf->Get(i))->srcSeq;
+        maxLen = MAX(int(srcSent->Size()), maxLen);
+    }
+    return maxLen;
+}
+
+/* sort the buffer by audio length (in ascending order) */
+void S2TDataSetBase::SortByAudioLengthAscending() {
+    stable_sort(buf->items, buf->items + buf->count,
+        [](void* a, void* b) {
+            return ((TripleSample*)(a))->fLen <
+                ((TripleSample*)(b))->fLen;
+        });
+}
+
+/* sort the buffer by target sentence length (in ascending order) */
+void S2TDataSetBase::SortByTgtLengthAscending()
+{
+    stable_sort(buf->items, buf->items + buf->count,
+        [](void* a, void* b) {
+            return ((TripleSample*)(a))->tgtSeq->Size() <
+                ((TripleSample*)(b))->tgtSeq->Size();
+        });
+}
+
+/* sort the buffer by source sentence length (in ascending order) */
+void S2TDataSetBase::SortBySrcLengthAscending() {
+    stable_sort(buf->items, buf->items + buf->count,
+        [](void* a, void* b) {
+            return ((TripleSample*)(a))->srcSeq->Size() <
+                ((TripleSample*)(b))->srcSeq->Size();
+        });
+}
+
+/* sort the buffer by audio length (in descending order) */
+void S2TDataSetBase::SortByAudioLengthDescending() {
+    stable_sort(buf->items, buf->items + buf->count,
+        [](void* a, void* b) {
+            return ((TripleSample*)(a))->fLen >
+                ((TripleSample*)(b))->fLen;
+        });
+}
+
+/* sort the buffer by target sentence length (in descending order) */
+void S2TDataSetBase::SortByTgtLengthDescending()
+{
+    stable_sort(buf->items, buf->items + buf->count,
+        [](void* a, void* b) {
+            return ((TripleSample*)(a))->tgtSeq->Size() >
+                ((TripleSample*)(b))->tgtSeq->Size();
+        });
+}
+
+/* sort the buffer by source sentence length (in descending order) */
+void S2TDataSetBase::SortBySrcLengthDescending() {
+    stable_sort(buf->items, buf->items + buf->count,
+        [](void* a, void* b) {
+            return ((TripleSample*)(a))->srcSeq->Size() >
+                ((TripleSample*)(b))->srcSeq->Size();
+        });
+}
+
+/*
+clear the buffer
+>> buf - the buffer (list) of samples
+*/
+void S2TDataSetBase::ClearBuf()
+{
+    bufIdx = 0;
+    for (int i = 0; i < buf->count; i++) {
+        TripleSample* sample = (TripleSample*)buf->Get(i);
+        delete sample;
+    }
+    buf->Clear();
+}
+
+/* constructor */
+S2TDataSetBase::S2TDataSetBase()
+{
+    fc = 0;
+    wc = 0;
+    sc = 0;
+    bufIdx = 0;
+    config = NULL;
+    buf = new XList();
+}
+
+/* de-constructor */
+S2TDataSetBase::~S2TDataSetBase()
+{
+    if (buf != NULL) {
+        ClearBuf();
+        delete buf;
+    }
+}
+
+/* constructor */
+TripleSample::TripleSample(XTensor * a, IntList * s, IntList * t, int myKey) {
+    index = -1;
+    audioSeq = a;
+    srcSeq = s;
+    tgtSeq = t;
+    fLen = a->dimSize[0];
+    bucketKey = myKey;
+}
+
+/* de-constructor */
+TripleSample::~TripleSample() {
+    if (audioSeq != NULL)
+        delete audioSeq;
+    if (srcSeq != NULL)
+        delete srcSeq;
+    if (tgtSeq != NULL)
+        delete tgtSeq;
+}
+
 }
