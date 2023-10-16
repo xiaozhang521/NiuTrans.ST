@@ -67,7 +67,7 @@ namespace s2t {
         bool use_log_fbank;  // if true (default), produce log-filterbank, else linear
         bool use_power;  // if true (default), use power in filterbank analysis, else magnitude.
 
-        FbankOptions() : mel_opts(80),
+        FbankOptions() : mel_opts(23),
             // defaults the #mel-banks to 23 for the FBANK computations.
             // this seems to be common for 16khz-sampled data,
             // but for 8khz-sampled data, 15 may be better.
@@ -184,7 +184,7 @@ namespace s2t {
         void Compute(float signal_raw_log_energy,
             float vtln_warp,
             XTensor* signal_frame,
-            XTensor* feature);
+            XTensor &feature);
 
         ~FbankComputer();
 

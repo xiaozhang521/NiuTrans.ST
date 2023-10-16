@@ -34,7 +34,6 @@ using namespace nts;
 
 int main(int argc, const char** argv)
 {
-    ASSERT(FALSE);
 
     //--------------------------Load Wave--------------------------
     ifstream inFile("C:\\Code\\VS\\NiuTrans.ST\\test.wav", ios::in | ios::binary);
@@ -52,14 +51,6 @@ int main(int argc, const char** argv)
     XTensor out;
     
     oft.ComputeFeatures(data.Data(), data.SampFreq(), 1.0, &out);
-    
-    //for (int i = 0; i < out->GetDim(0); i++) {
-    //    for (int j = 0; j < out->GetDim(1); j++) {
-
-    //        cout << out->Get2D(i, j) << " ";
-    //    }
-    //    cout << endl;
-    //}
     return 0;
     //--------------------------Load Wave--------------------------
     //std::ios_base::sync_with_stdio(false);

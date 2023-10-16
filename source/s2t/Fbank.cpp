@@ -106,11 +106,11 @@ namespace s2t {
     void FbankComputer::Compute(float signal_raw_log_energy,
         float vtln_warp,
         XTensor* signal_frame,
-        XTensor* feature) {
+        XTensor &feature) {
 
         const MelBanks& mel_banks = *(GetMelBanks(vtln_warp));
 
-        ASSERT(signal_frame->GetDim(0) == opts_.frame_opts.PaddedWindowSize() && feature->GetDim(0) == this->Dim());
+        ASSERT(signal_frame->GetDim(0) == opts_.frame_opts.PaddedWindowSize() && feature.GetDim(0) == this->Dim());
 
 
         // Compute energy after window function (not the raw one).
@@ -141,15 +141,14 @@ namespace s2t {
         // Use magnitude instead of power if requested.
         if (!opts_.use_power)
             SqrtMe(power_spectrum);
-        else
-            SqrtMe(power_spectrum);
 
         INT32 mel_offset = ((opts_.use_energy && !opts_.htk_compat) ? 1 : 0);
-        XTensor mel_energies(*feature);
+        XTensor mel_energies(feature);
         // It's a tensor with two dim.
         dimSize = { opts_.mel_opts.num_bins };
         mel_energies.SetDim(&dimSize);
-        mel_energies.SetData(feature, opts_.mel_opts.num_bins, mel_offset);
+        int startIndex = { 0 };
+        mel_energies.SetData(feature.GetCell(&startIndex, 1), opts_.mel_opts.num_bins, mel_offset);
 
         // Sum with mel fiterbanks over the power spectrum
         mel_banks.Compute(power_spectrum, &mel_energies);
@@ -165,9 +164,9 @@ namespace s2t {
                 signal_raw_log_energy = log_energy_floor_;
             }
             INT32 energy_index = opts_.htk_compat ? opts_.mel_opts.num_bins : 0;
-            feature->Set1D(signal_raw_log_energy, energy_index);
+            feature.Set1D(signal_raw_log_energy, energy_index);
         }
-        feature = &mel_energies;
+        feature = mel_energies;
     }
 
     // ------------MelBanks VtlnWarpFreq------------

@@ -357,7 +357,7 @@ namespace s2t {
             XTensor output_row;
             int rowDimSize = { rows_out };
             output_row.Resize(1, &rowDimSize);
-            computer_.Compute(raw_log_energy, vtln_warp, &window, &output_row);
+            computer_.Compute(raw_log_energy, vtln_warp, &window, output_row);
             output->SetData(output_row.GetCell(&startIndex, 1), rows_out, r * cols_out);
         }
     }
