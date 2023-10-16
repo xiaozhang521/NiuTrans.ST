@@ -79,7 +79,7 @@ namespace s2t
         model->MakeS2TMaskEnc(paddingEnc, maskEnc);
 
         XTensor encoding;
-        encoding = model->encoder->RunFastPostNorm(batchEnc, &maskEnc);
+        encoding = model->encoder->RunFastPreNorm(batchEnc, NULL);
 
         encoding.Dump(stderr, "Encoder output is: ", 100);
 
@@ -123,7 +123,7 @@ namespace s2t
 
         XTensor paddingEnc;
         // init pad  for test
-        InitTensor2D(&paddingEnc, 1, test_audio_pad.dimSize[0], X_INT, test_audio_pad.devID);
+        InitTensor2D(&paddingEnc, 1, test_audio_pad.dimSize[0]/2, X_FLOAT, test_audio_pad.devID);
         paddingEnc = paddingEnc + 1;
 
         DecodingBatch(test_audio_pad, paddingEnc);
