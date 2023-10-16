@@ -94,14 +94,14 @@ namespace s2t
         x = extractor->Make(x);
         x = Transpose(x, 1, 2);
 
-        FILE* convOutput = fopen("../tools/data/convOutput.bin", "wb");
-        x.BinaryDump(convOutput);
+        // FILE* convOutput = fopen("../tools/data/convOutput.bin", "wb");
+        // x.BinaryDump(convOutput);
 
         XTensor posEmbedding = Unsqueeze(posEmbeddingBase, 0, x.GetDim(0));
         SumMe(x, posEmbedding);
 
-        FILE* posOutput = fopen("../tools/data/posOutput.bin", "wb");
-        x.BinaryDump(posOutput);
+        // FILE* posOutput = fopen("../tools/data/posOutput.bin", "wb");
+        // x.BinaryDump(posOutput);
 
         for (int i = 0; i < nlayer; i++) {
 
@@ -129,11 +129,11 @@ namespace s2t
 
         }
 
-        FILE* blocksOutput = fopen("../tools/data/blocksOutput.bin", "wb");
-        x.BinaryDump(blocksOutput);
+        // FILE* blocksOutput = fopen("../tools/data/blocksOutput.bin", "wb");
+        // x.BinaryDump(blocksOutput);
 
-        //FILE* lnPostInput = fopen("../tools/data/lnPostInput.bin", "rb");
-        //x.BinaryRead(lnPostInput);
+        // FILE* lnPostInput = fopen("../tools/data/lnPostInput.bin", "rb");
+        // x.BinaryRead(lnPostInput);
 
         if (finalNorm) {
             return encoderLayerNorm->Run(x); 
