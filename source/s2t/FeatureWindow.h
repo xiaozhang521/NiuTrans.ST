@@ -347,14 +347,18 @@ namespace s2t {
         output->Resize(2, dimSize, X_FLOAT, 1.0);
         XTensor window;  // windowed waveform.
         bool use_raw_log_energy = computer_.NeedRawLogEnergy();
-
+        int startIndex = { 0 };
         for (INT32 r = 0; r < rows_out; r++) {  // r is frame index.
             float raw_log_energy = 0.0;
             ExtractWindow(0, wave, r, computer_.GetFrameOptions(),
                 feature_window_function_, window, (use_raw_log_energy ? &raw_log_energy : NULL));
 
-            XTensor output_row(*output);
+            //int rowIndex = { r, 0 };
+            XTensor output_row;
+            int rowDimSize = { rows_out };
+            output_row.Resize(1, &rowDimSize);
             computer_.Compute(raw_log_energy, vtln_warp, &window, &output_row);
+            output->SetData(output_row.GetCell(&startIndex, 1), rows_out, r * cols_out);
         }
     }
 
