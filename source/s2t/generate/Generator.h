@@ -28,7 +28,7 @@
 
 #include "../S2TModel.h"
 #include "../../nmt/translate/Searcher.h"
-//#include "GenerateDataSet.h"
+#include "S2TGeneratorDataSet.h"
 
  /* the s2t namespace */
 namespace s2t
@@ -42,7 +42,7 @@ namespace s2t
         S2TModel* model;
 
         /* for batching */
-        //GenerateDataset batchLoader;
+        S2TGeneratorDataset batchLoader;
 
         /* the searcher for translation */
         void* seacher;
@@ -69,8 +69,8 @@ namespace s2t
         ///* initialize the translator */
         void Init(S2TConfig& myConfig, S2TModel& myModel);
 
-        ///* the translation function */
-        //bool Translate();
+        /* the generate function */
+        bool Generate();
 
         bool TestInference();
 

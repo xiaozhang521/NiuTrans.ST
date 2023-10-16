@@ -27,56 +27,80 @@
 
 using namespace std;
 
+/* the s2t namespace */
 namespace s2t {
-    class S2TVocab
-    {
-    public:
-        /* id of start-of-sequence token */
-        int sosID;
 
-        /* id of end-of-sequence token */
-        int eosID;
+/* the speech-to-text vocabulary class */
+class S2TVocab
+{
+public:
+    /* id of start-of-sequence token */
+    int sosID;
 
-        /* id of paddings */
-        int padID;
+    /* id of end-of-sequence token */
+    int eosID;
 
-        /* id of unknown tokens */
-        int unkID;
+    /* id of paddings */
+    int padID;
 
-        /* size of the vocabulary */
-        int vocabSize;
+    /* id of unknown tokens */
+    int unkID;
 
-        /* a dict that maps tokens to ids */
-        unordered_map<string, int> token2id;
+    /* id to indicate there is no time stamp */
+    int noTimeStamps;
 
-        /* a dict that maps ids to words */
-        unordered_map<int, string> id2token;
+    /* id to indicate silent */
+    int noSpeech;
 
-    public:
-        /* constructor */
-        S2TVocab();
+    /* id to indicate start of some special tokens*/
+    int startPrev;
 
-        /* set ids for special tokens */
-        void SetSpecialID(int sos, int eos, int pad, int unk);
+    /* id to indicate start of language model*/
+    int startLM;
 
-        /* load a vocabulary from a file */
-        void Load(const string& vocabFN);
+    /* ids of languages */
+    int* langIDs;
 
-        /* save a vocabulary to a file */
-        void Save(const string& vocabFN);
+    /* ids of time stamp */
+    int* tStampIDs;
 
-        /* copy data from another vocab */
-        void CopyFrom(const S2TVocab& v);
+    /* ids of task */
+    int* taskIDs;
 
-        void ShowVocab();
+    /* size of the vocabulary */
+    int vocabSize;
 
-        void Test();
+    /* a dict that maps tokens to ids */
+    unordered_map<string, int> token2id;
 
-        /* not work */
-        wstring Utf8ToString(const std::vector<unsigned char>& utf8Bytes);
-        wstring Utf8ToString(const string& utf8Bytes);
-        string StringToUtf8(const string& String);
-    };
+    /* a dict that maps ids to words */
+    unordered_map<int, string> id2token;
+
+public:
+    /* constructor */
+    S2TVocab();
+
+    /* set ids for special tokens */
+    void SetSpecialID(int sos, int eos, int pad, int unk);
+
+    /* load a vocabulary from a file */
+    void Load(const string& vocabFN);
+
+    /* save a vocabulary to a file */
+    void Save(const string& vocabFN);
+
+    /* copy data from another vocab */
+    void CopyFrom(const S2TVocab& v);
+
+    void ShowVocab();
+
+    void Test();
+
+    /* not work */
+    wstring Utf8ToString(const std::vector<unsigned char>& utf8Bytes);
+    wstring Utf8ToString(const string& utf8Bytes);
+    string StringToUtf8(const string& String);
+};
 } /* end of the s2t namespace */
 
 
