@@ -55,7 +55,7 @@ namespace s2t
 
     private:
         /* translate a batch of sequences */
-        XTensor DecodingBatch(XTensor& batchEnc, XTensor& paddingEnc);
+        XTensor DecodingBatch(XTensor& batchEnc, XTensor& paddingEnc, IntList& indices);
 
 
 

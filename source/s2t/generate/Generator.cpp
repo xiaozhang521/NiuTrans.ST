@@ -52,10 +52,26 @@ namespace s2t
         model = &myModel;
         config = &myConfig;
 
+        if (config->inference.beamSize > 1) {
+            LOG("Inferencing with beam search (beam=%d, batchSize= %d sents | %d tokens, lenAlpha=%.2f, maxLenAlpha=%.2f) ",
+                config->inference.beamSize, config->common.sBatchSize, config->common.wBatchSize,
+                config->inference.lenAlpha, config->inference.maxLenAlpha);
+            seacher = new BeamSearch();
+            ((BeamSearch*)seacher)->Init(myConfig);
+        }
+        else if (config->inference.beamSize == 1) {
+            LOG("Inferencing with greedy search (batchSize= %d sents | %d tokens, maxLenAlpha=%.2f)",
+                config->common.sBatchSize, config->common.wBatchSize, config->inference.maxLenAlpha);
+            seacher = new GreedySearch();
+            ((GreedySearch*)seacher)->Init(myConfig);
+        }
+        else {
+            CheckNTErrors(false, "Invalid beam size\n");
+        }
         cout << "--- Generator Init End ---" << endl;
     }
 
-    XTensor Generator::DecodingBatch(XTensor& batchEnc, XTensor& paddingEnc)
+    XTensor Generator::DecodingBatch(XTensor& batchEnc, XTensor& paddingEnc, IntList& indices)
     {
         // change single to batch
         bool isSingle = 0;
@@ -103,6 +119,23 @@ namespace s2t
     bool Generator::Generate()
     {
         batchLoader.Init(*config, false);
+
+        /* inputs */
+        XTensor batchEnc;
+        XTensor paddingEnc;
+
+        /* sentence information */
+        XList info;
+        XList inputs;
+        int wordCount;
+        IntList indices;
+        inputs.Add(&batchEnc);
+        inputs.Add(&paddingEnc);
+        info.Add(&wordCount);
+        info.Add(&indices);
+
+        batchLoader.GetBatchSimple(&inputs, &info);
+        DecodingBatch(batchEnc, paddingEnc, indices);
         return true;
     }
 
@@ -127,7 +160,7 @@ namespace s2t
         InitTensor2D(&paddingEnc, 1, test_audio_pad.dimSize[0]/2, X_FLOAT, test_audio_pad.devID);
         paddingEnc = paddingEnc + 1;
 
-        DecodingBatch(test_audio_pad, paddingEnc);
+        //DecodingBatch(test_audio_pad, paddingEnc);
             
         return 1;
     }

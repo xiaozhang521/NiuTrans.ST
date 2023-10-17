@@ -172,7 +172,7 @@ bool S2TGeneratorDataset::GetBatchSimple(XList* inputs, XList* info)
 
     /* get the maximum sequence length in a mini-batch */
     TripleSample* longestsample = (TripleSample*)(buf->Get(bufIdx));
-    int maxLen = int(longestsample->srcSeq->Size());
+    int maxLen = longestsample->fLen;
 
     /* we choose the max-token strategy to maximize the throughput */
     while (realBatchSize * maxLen * config->inference.beamSize < config->common.wBatchSize
@@ -202,7 +202,8 @@ bool S2TGeneratorDataset::GetBatchSimple(XList* inputs, XList* info)
     indices->Clear();
 
     /* right padding */
-    int curSrc = 0;
+    /* TODO!!! Check the length of audio */
+    /*int curSrc = 0;
     for (int i = 0; i < realBatchSize; ++i) {
         TripleSample* sequence = (TripleSample*)(buf->Get(bufIdx + i));
         IntList* src = sequence->srcSeq;
@@ -215,7 +216,7 @@ bool S2TGeneratorDataset::GetBatchSimple(XList* inputs, XList* info)
 
         while (curSrc < maxLen * (i + 1))
             paddingValues[curSrc++] = 0.0F;
-    }
+    }*/
 
     bufIdx += realBatchSize;
 
