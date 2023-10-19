@@ -123,7 +123,7 @@ XTensor LayerNorm::RunL2Norm(XTensor& input)
     /* TODO: add the backward function for Normalize */
 
     /* standard = sqrt(variance) */
-    standard = Power(variance, 0.5F) + 1e-5F;
+    standard = Power(variance + 1e-5F, 0.5F);
 
     /* unsqueeze mean and standard deviation to fit them into
        the same shape of x */
