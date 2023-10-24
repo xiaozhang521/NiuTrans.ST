@@ -350,6 +350,77 @@ XTensor AttDecoder::RunFastPreNorm(XTensor& inputDec, XTensor& outputEnc, XTenso
 }
 
 /*
+run decoding for inference with pre - norm
+>> inputDec - the input tensor of the decoder
+>> outputEnc - the output tensor of the encoder
+>> mask - mask for the decoder attention
+>> maskEncDec - mask for the encoder - decoder attention
+>> nstep - the current length of the decoder input
+<< return -the output tensor of the decoder
+*/
+XTensor AttDecoder::RunFastPreNorm(XTensor& inputDec, XTensor& outputEnc, XTensor* mask, XTensor* maskEncDec, int nstep)
+{
+    /* clear the history */
+    if (useHistory)
+        history->ClearHistory();
+
+    XTensor x;
+
+    x = embedder->Make(inputDec, true, nstep);
+
+    if (useHistory)
+        history->Add(x);
+
+    for (int i = 0; i < nlayer; i++) {
+
+        if (useHistory)
+            x = history->Pop();
+
+        XTensor xn;
+
+        /* layer normalization with pre-norm for self-attn */
+        xn = selfAttLayerNorms[i].Run(x);
+
+        /* self attention */
+        xn = selfAtts[i].Make(xn, xn, xn, mask, &selfAttCache[i], SELF_ATT);
+
+        /* residual connection */
+        SumMe(xn, x);
+
+        /* layer normalization with pre-norm for encoder-decoder attention */
+        x = enDeAttLayerNorms[i].Run(xn);
+
+        /* encoder-decoder attention */
+        x = enDeAtts[i].Make(outputEnc, x, outputEnc, maskEncDec,
+            &enDeAttCache[i], EN_DE_ATT);
+
+        /* residual connection */
+        SumMe(x, xn);
+
+        /* layer normalization with pre-norm for ffn */
+        xn = ffnLayerNorms[i].Run(x);
+
+        /* ffn */
+        if (ffns != NULL)
+            xn = ffns[i].Make(xn);
+
+        /* residual connection */
+        SumMe(x, xn);
+
+        if (useHistory)
+            history->Add(x);
+    }
+
+    if (useHistory)
+        x = history->Pop();
+
+    if (finalNorm)
+        return decoderLayerNorm->Run(x);
+
+    return x;
+}
+
+/*
 run decoding for inference with post-norm
 >> inputDec - the input tensor of the decoder
 >> outputEnc - the output tensor of the encoder

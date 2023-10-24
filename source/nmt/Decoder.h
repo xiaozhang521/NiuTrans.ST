@@ -116,6 +116,9 @@ public:
     /* run decoding for inference with pre-norm */
     XTensor RunFastPreNorm(XTensor& inputDec, XTensor& outputEnc, XTensor* maskEncDec, int nstep);
 
+    /* run decoding for inference with pre-norm (double mask control) */
+    XTensor RunFastPreNorm(XTensor& inputDec, XTensor& outputEnc, XTensor* mask, XTensor* maskEncDec, int nstep);
+
     /* run decoding for inference with post-norm */
     XTensor RunFastPostNorm(XTensor& inputDec, XTensor& outputEnc, XTensor* maskEncDec, int nstep);
 };
