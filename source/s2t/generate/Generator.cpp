@@ -96,6 +96,7 @@ namespace s2t
 
         XTensor encoding;
         encoding = model->encoder->RunFastPreNorm(batchEnc, NULL);
+        IntList** outputs = new IntList * [batchSize];
 
         encoding.Dump(stderr, "Encoder output is: ", 100);
 
