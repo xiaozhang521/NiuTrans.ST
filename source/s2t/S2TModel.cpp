@@ -378,6 +378,8 @@ namespace s2t
         if (!config->model.shareDecInputOutputEmb) {
             list.Add(outputLayer->w);
         }
+
+        list.Add(&decoder->embedder->posEmbeddingBase);
     }
 
     void S2TModel::LoadFromFile(FILE* file)
@@ -447,6 +449,25 @@ namespace s2t
         Unsqueeze(paddingEnc, padding2, paddingEnc.order - 1, paddingEnc.GetDim(-1));
         Unsqueeze(padding2, maskEnc, 0, config->model.encSelfAttHeadNum);
         ScaleAndShiftMe(maskEnc, 1e9F, -1e9F);
+    }
+
+    XTensor S2TModel::MakeS2TTriMaskDecInference(int batchSize, int length)
+    {
+        /* encoder-decoder mask that prevents the attention to paded words */
+        XTensor maskEncDec;
+        InitTensor2D(&maskEncDec, length, length, X_FLOAT, devID);
+        _SetDataLowTri(&maskEncDec, 1.0, 0);
+        maskEncDec = Unsqueeze(maskEncDec, 0, batchSize);
+
+        if (config->model.encDecAttHeadNum > 1) {
+            maskEncDec = Unsqueeze(maskEncDec, 0, config->model.encDecAttHeadNum);
+            ScaleAndShiftMe(maskEncDec, 1e9F, -1e9F);
+            return maskEncDec;
+        }
+        else {
+            ScaleAndShiftMe(maskEncDec, 1e9F, -1e9F);
+            return maskEncDec;
+        }
     }
 
 
