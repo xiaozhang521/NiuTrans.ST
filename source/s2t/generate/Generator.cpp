@@ -41,7 +41,7 @@ namespace s2t
         if (config->inference.beamSize > 1)
             delete (BeamSearch*)seacher;
         else
-            delete (GreedySearch*)seacher;
+            delete (S2TGreedySearch*)seacher;
         delete outputBuf;
     }
 
@@ -62,8 +62,8 @@ namespace s2t
         else if (config->inference.beamSize == 1) {
             LOG("Inferencing with greedy search (batchSize= %d sents | %d tokens, maxLenAlpha=%.2f)",
                 config->common.sBatchSize, config->common.wBatchSize, config->inference.maxLenAlpha);
-            seacher = new GreedySearch();
-            ((GreedySearch*)seacher)->Init(myConfig);
+            seacher = new S2TGreedySearch();
+            ((S2TGreedySearch*)seacher)->Init(myConfig);
         }
         else {
             CheckNTErrors(false, "Invalid beam size\n");
@@ -77,8 +77,7 @@ namespace s2t
         bool isSingle = 0;
         if (batchEnc.order == 2) {
             isSingle = 1;
-            int dim[3] = { 1, batchEnc.dimSize[0], batchEnc.dimSize[1] };
-            batchEnc.Reshape(3, dim);
+            batchEnc = Unsqueeze(batchEnc, 0, 1);
         }
 
         // begin decoding task
@@ -87,32 +86,26 @@ namespace s2t
             model->decoder->selfAttCache[i].miss = true;
             model->decoder->enDeAttCache[i].miss = true;
         }
-        
-        // encoder forward   *** should be in searcher, here test
-        XTensor maskEnc;
-        
-        // encoder mask for test
-        model->MakeS2TMaskEnc(paddingEnc, maskEnc);
 
-        XTensor encoding;
-        encoding = model->encoder->RunFastPreNorm(batchEnc, NULL);
         IntList** outputs = new IntList * [batchSize];
+        for (int i = 0; i < batchSize; i++)
+            outputs[i] = new IntList();
 
-        encoding.Dump(stderr, "Encoder output is: ", 100);
-
-        //FILE* outputFile = fopen(config->inference.outputFN, "wb");
-        //encoding.BinaryDump(outputFile);
-
-
-
-
-        if (isSingle)
-            return batchEnc;
-        else {
-            int dim[2] = { batchEnc.dimSize[1], batchEnc.dimSize[2] };
-            batchEnc.Reshape(2, dim);
-            return batchEnc;
+        /* greedy search */
+        if (config->inference.beamSize == 1) {
+            ((S2TGreedySearch*)seacher)->Search(model, batchEnc, paddingEnc, outputs);
         }
+
+
+
+
+
+        if (isSingle) {
+            /*TODO*/
+            batchEnc = Squeeze(batchEnc);
+        }
+            
+        return batchEnc;
             
     }
 
@@ -134,8 +127,23 @@ namespace s2t
         info.Add(&wordCount);
         info.Add(&indices);
 
+        /*TODO wrong size*/
         batchLoader.GetBatchSimple(&inputs, &info);
-        DecodingBatch(batchEnc, paddingEnc, indices);
+        // batchEnc.Dump(stderr, NULL, -1);
+        
+        //InitTensor3D(&batchEnc, 1, 3000, 80, X_FLOAT, config->common.devID);    // b * l * f
+        //FILE* audioFile = fopen("../tools/data/batch.bin.using", "rb");
+        //if (audioFile) {
+        //    batchEnc.BinaryRead(audioFile);
+        //}
+        
+        XTensor paddingEncForAudio;
+        InitTensor2D(&paddingEncForAudio, batchEnc.GetDim(0), int(batchEnc.GetDim(1)/2), X_FLOAT, config->common.devID);
+        paddingEncForAudio = paddingEncForAudio * 0 + 1;
+
+        DecodingBatch(batchEnc, paddingEncForAudio, indices);
+
+
         return true;
     }
 

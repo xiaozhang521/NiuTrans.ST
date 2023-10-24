@@ -28,6 +28,7 @@
 
 #include "../S2TModel.h"
 #include "../../nmt/translate/Searcher.h"
+#include "S2TSearcher.h"
 #include "S2TGeneratorDataSet.h"
 
  /* the s2t namespace */
