@@ -57,7 +57,7 @@ int main(int argc, const char** argv)
 
     Generator generator;
     generator.Init(config, model);
-    generator.TestInference();
+    generator.Generate();
 
 
     //generator.generate(); 
