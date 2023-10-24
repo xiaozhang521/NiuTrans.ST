@@ -20,6 +20,7 @@
   */
 
 #include "Fbank-function.h"
+
 using namespace nts;
 
 namespace s2t {
@@ -202,7 +203,7 @@ namespace s2t {
         /* Check range of logn */
         if (logn < 0)
             ASSERT(FALSE);
-        //KALDI_ERR << "Error: logn is out of bounds in SRFFT";
+        //ERR << "Error: logn is out of bounds in SRFFT";
 
     /* Compute trivial cases */
         if (logn < 3) {
@@ -659,7 +660,6 @@ namespace s2t {
                 data[1] /= 2;
             }
         }
-
         if (!forward) {
             ASSERT(forward);
             //ComplexFft(v, false);
@@ -671,6 +671,45 @@ namespace s2t {
     template void RealFft<float>(XTensor* v, bool forward);
     template void RealFft<double>(XTensor* v, bool forward);
 
+    template<typename Real> void OneSidedFFT(XTensor* v, bool forward) {
+        ASSERT(v != NULL);
+        INT32 N = v->GetDim(0), N2 = N / 2 + 1;
+        ASSERT(N % 2 == 0);
+        if (N == 0) return;
+        //Real* data = reinterpret_cast<Real*>(v->GetCell(&index, 1));
+        std::vector<std::complex<float>> output(N2, 0.0);
+        //std::complex<float> con(0.0, 2.0);
+        for (int w = 0; w < N2; w++) {
+            for (int k = 0; k < N; k++) {
+                std::complex<float> exponent = std::exp(std::complex<float>(0.0, -2.0 * M_PI * w * k / N));
+                output[w] += v->Get1D(k) * exponent;
+                //output[w] += v->Get1D(k) * exp(0 - con * M_PI * w * k / N);
+            }
+        }
+        for (int w = 0; w < N2; w++) {
+            v->Set1D(output[w].real(), w);
+            v->Set1D(output[w].imag(), w + N / 2);
+        }
+
+        //!waiting for complete.
+    }
+    template void OneSidedFFT<float>(XTensor* v, bool forward);
+    template void OneSidedFFT<double>(XTensor* v, bool forward);
+    
+    std::vector<std::complex<float>> OneSidedFFT(const std::vector<float>& signal) {
+        int N = signal.size();
+        std::vector<std::complex<float>> spectrum(N, 0.0);
+
+        for (int k = 0; k < N / 2; k++) {
+            for (int n = 0; n < N; n++) {
+                float angle = 2.0 * M_PI * k * n / N;
+                spectrum[k] += std::polar(signal[n], -angle);
+            }
+        }
+
+        return spectrum;
+    }
+    
     template class SplitRadixComplexFft<float>;
     template class SplitRadixComplexFft<double>;
     template class SplitRadixRealFft<float>;

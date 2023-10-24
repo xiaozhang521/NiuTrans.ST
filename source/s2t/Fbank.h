@@ -28,6 +28,7 @@
 #include <vector>
 #include "Fbank-function.h"
 #include "Fbank-function-inl.h"
+#include <complex>
 using namespace nts;
 
 namespace s2t {
@@ -66,8 +67,9 @@ namespace s2t {
         bool htk_compat;  // If true, put energy last (if using energy)
         bool use_log_fbank;  // if true (default), produce log-filterbank, else linear
         bool use_power;  // if true (default), use power in filterbank analysis, else magnitude.
+        bool oneSide;
 
-        FbankOptions() : mel_opts(23),
+        FbankOptions() : mel_opts(80),
             // defaults the #mel-banks to 23 for the FBANK computations.
             // this seems to be common for 16khz-sampled data,
             // but for 8khz-sampled data, 15 may be better.
@@ -76,6 +78,7 @@ namespace s2t {
             raw_energy(true),
             htk_compat(false),
             use_log_fbank(true),
+            oneSide(true),
             use_power(true) {}
     };
 

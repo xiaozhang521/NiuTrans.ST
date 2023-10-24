@@ -26,7 +26,7 @@
 #include <string>
 #include <stdint.h>
 #include "utils.h"
-#include "../niutensor/tensor/XTensor.h"
+#include "../niuTensor/tensor/core/CHeader.h"
 using namespace nts;
 
 
@@ -50,6 +50,7 @@ namespace s2t {
         bool allow_upsample;
         int max_feature_vectors;
         int torchPaddingLength; // In default, it will be half of frame length.
+        std::string padMod;
         FrameExtractionOptions(const FrameExtractionOptions& opts ) {
             samp_freq = opts.samp_freq;
             frame_shift_ms = opts.frame_shift_ms;
@@ -60,6 +61,8 @@ namespace s2t {
             window_type = opts.window_type;
             snip_edges = opts.snip_edges;
             torchPaddingLength = opts.torchPaddingLength;
+            round_to_power_of_two = opts.round_to_power_of_two;
+            padMod = opts.padMod;
         }
 
         FrameExtractionOptions() :
@@ -67,16 +70,17 @@ namespace s2t {
             frame_shift_ms(10.0),
             frame_length_ms(25.0),
             dither(0.0),
-            preemph_coeff(0.97),
+            preemph_coeff(0),
             remove_dc_offset(true),
             window_type("hanning"),
-            round_to_power_of_two(true),
+            round_to_power_of_two(false),
             blackman_coeff(0.42),
             snip_edges(true),
             allow_downsample(false),
             allow_upsample(false),
             max_feature_vectors(-1),
-            torchPaddingLength(0)
+            torchPaddingLength(200),
+            padMod("reflect")
         { }
         INT32 WindowShift() const {
             return static_cast<INT32>(samp_freq * 0.001 * frame_shift_ms);
@@ -289,33 +293,52 @@ namespace s2t {
         float new_sample_freq = computer_.GetFrameOptions().samp_freq;
         if (computer_.GetFrameOptions().torchPaddingLength != 0) {
             XTensor temp;
-            int paddingDimSize = { wave.GetDim(0) + computer_.GetFrameOptions().torchPaddingLength * 2  };
+            int paddingDimSize = { wave.GetDim(0) + computer_.GetFrameOptions().torchPaddingLength * 2 };
             temp.Resize(1, &paddingDimSize);
-            temp.SetZeroAll();
             int index = { 0 };
-            temp.SetData(wave.GetCell(&index, 1), wave.GetDim(0), computer_.GetFrameOptions().torchPaddingLength);
-            if (sample_freq == new_sample_freq) {
+            if (computer_.GetFrameOptions().padMod == "constant") {
+                temp.SetZeroAll();
+                temp.SetData(wave.GetCell(&index, 1), wave.GetDim(0), computer_.GetFrameOptions().torchPaddingLength);
+            }
+            else if (computer_.GetFrameOptions().padMod == "reflect") {
+                temp.SetData(wave.GetCell(&index, 1), wave.GetDim(0), computer_.GetFrameOptions().torchPaddingLength);
+                for (int i = 1; i <= computer_.GetFrameOptions().torchPaddingLength; i++) {
+                    temp.Set1D(wave.Get1D(i - 1), computer_.GetFrameOptions().torchPaddingLength - i);
+                    temp.Set1D(wave.Get1D(wave.GetDim(0) - i), temp.GetDim(0) - computer_.GetFrameOptions().torchPaddingLength + i - 1);
+                    /*
+                    std::cout << wave.Get1D(i - 1) << " || " 
+                        << temp.Get1D(computer_.GetFrameOptions().torchPaddingLength - i) << " || "
+                        << computer_.GetFrameOptions().torchPaddingLength - i << " || "
+                        << i - 1 << endl;
+                    std::cout << wave.Get1D(wave.GetDim(0) - i) << " || " 
+                        << temp.Get1D(temp.GetDim(0) - computer_.GetFrameOptions().torchPaddingLength + i - 1) << " || "
+                        << temp.GetDim(0) - computer_.GetFrameOptions().torchPaddingLength + i - 1 << " || "
+                        << wave.GetDim(0) - i << endl;
+                    */
+                }
+            }
+            if(sample_freq == new_sample_freq) {
                 Compute(temp, vtln_warp, output);
             }
             else {
                 ASSERT(FALSE);
             }
         }
-        if (sample_freq == new_sample_freq) {
+        else if (sample_freq == new_sample_freq) {
             Compute(wave, vtln_warp, output);
         }
         else {
             if (new_sample_freq < sample_freq &&
                 !computer_.GetFrameOptions().samp_freq)
                 ASSERT(FALSE);
-                //KALDI_ERR << "Waveform and config sample Frequency mismatch: "
+                //ERR << "Waveform and config sample Frequency mismatch: "
                 //<< sample_freq << " .vs " << new_sample_freq
                 //<< " (use --allow-downsample=true to allow "
                 //<< " downsampling the waveform).";
             else if (new_sample_freq > sample_freq &&
                 !computer_.GetFrameOptions().samp_freq)
                 ASSERT(FALSE);
-                //KALDI_ERR << "Waveform and config sample Frequency mismatch: "
+                //ERR << "Waveform and config sample Frequency mismatch: "
                 //<< sample_freq << " .vs " << new_sample_freq
                 //<< " (use --allow-upsample=true option to allow "
                 //<< " upsampling the waveform).";
@@ -360,6 +383,11 @@ namespace s2t {
             computer_.Compute(raw_log_energy, vtln_warp, &window, output_row);
             output->SetData(output_row.GetCell(&startIndex, 1), rows_out, r * cols_out);
         }
+        XTensor temp = ReduceMax(ReduceMax(*output, 0), 0);
+        float outputMax = temp.Get0D();
+        ClipMe(*output, outputMax - 8, outputMax);
+        ScaleAndShiftMe(*output, 1, 4);
+        ScaleAndShiftMe(*output, 1 / 4, 0);
     }
 
     template <class F>

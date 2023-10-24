@@ -24,6 +24,7 @@
 #include "../niutensor/tensor/XTensor.h"
 #include <vector>
 #include "utils.h"
+#include <complex>
 using namespace nts;
 
 namespace s2t {
@@ -31,6 +32,10 @@ namespace s2t {
     template<typename Real> void RealFft(XTensor* v, bool forward);
 
     template<typename Real> void ComplexFft(XTensor* v, bool forward, XTensor* tmp_work = NULL);
+
+    template<typename Real> void OneSidedFFT(XTensor* v, bool forward);
+
+    std::vector<std::complex<float>> OneSidedFFT(const std::vector<float>& signal);
 
     template<typename Real>
     class SplitRadixComplexFft {

@@ -117,16 +117,23 @@ namespace s2t {
         if (opts_.use_energy && !opts_.raw_energy)
             signal_raw_log_energy = logf(std::max<float>(ReduceSum(Multiply(signal_frame, signal_frame, 0), 0).Get0D(), std::numeric_limits<float>::epsilon()));
 
-        /*
-        if (srfft_ != NULL)  // Compute FFT using split-radix algorithm.
-        {
+        if (opts_.oneSide) {
+            OneSidedFFT<float>(signal_frame, true);
+
             int startIndex = { 0 };
-            srfft_->Compute(reinterpret_cast<float*>(signal_frame->GetCell(&startIndex, 1)), true); // Need a pointer to the start of the vector's data.
+            std::vector<float> myOneSideFFTIn(reinterpret_cast<float*>(signal_frame->GetCell(&startIndex, 1)),
+                reinterpret_cast<float*>(signal_frame->GetCell(&startIndex, 1)) + signal_frame->GetDim(0));
+            std::vector<std::complex<float>> mymyOneSideFFTOut = OneSidedFFT(myOneSideFFTIn);
         }
-        else  // An alternative algorithm that works for non-powers-of-two.
-            RealFft<float>(signal_frame, true);
-        */ 
-        RealFft<float>(signal_frame, true);
+        else {
+            if (srfft_ != NULL)  // Compute FFT using split-radix algorithm.
+            {
+                int startIndex = { 0 };
+                srfft_->Compute(reinterpret_cast<float*>(signal_frame->GetCell(&startIndex, 1)), true); // Need a pointer to the start of the vector's data.
+            }
+            else  // An alternative algorithm that works for non-powers-of-two.
+                RealFft<float>(signal_frame, true);
+        }
 
         // Convert the FFT into a power spectrum.
         ComputePowerSpectrum(signal_frame);
@@ -136,8 +143,7 @@ namespace s2t {
         int index = { 0 };
         power_spectrum.SetData(signal_frame->GetCell(&index, 1), signal_frame->GetDim(0) / 2 + 1, 0);
 
-        // !!!I commented out this code because I haven't found an existing way to root every element of XTensor yet, 
-        // and we don't use magnitude for the time being
+        // We don't use magnitude for the time being
         // Use magnitude instead of power if requested.
         if (!opts_.use_power)
             SqrtMe(power_spectrum);
@@ -295,7 +301,7 @@ namespace s2t {
                 || vtln_high <= 0.0 || vtln_high >= high_freq
                 || vtln_high <= vtln_low))
             ASSERT(FALSE);
-           /* KALDI_ERR << "Bad values in options: vtln-low " << vtln_low
+           /* ERR << "Bad values in options: vtln-low " << vtln_low
             << " and vtln-high " << vtln_high << ", versus "
             << "low-freq " << low_freq << " and high-freq "
             << high_freq;*/
