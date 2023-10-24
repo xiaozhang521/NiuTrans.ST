@@ -56,20 +56,24 @@ namespace s2t
     };
 
     /* whisper decoding configuration */
-    class WhisperDecConig
+    class WhisperDecConig : XConfig
     {
+        /*TODO*/
     public:
 
-        string task = "transcribe";
-        string language = "en";     // zh
-        float temperature = 0.0;
-        float no_speech_threshold = 0.6;
-        float logprob_threshold = -1.0;
-        float compression_ratio_threshold = 2.4;
+        char task[MAX_NAME_LEN];
+        char language[MAX_NAME_LEN];     // zh
+        float temperature;
+        float noSpeechThreshold;
+        float logProbThreshold;
+        float compRatioThreshold;
+        bool withoutTimeStamps;
+
+    public:
+        /* load configuration from the command */
+        void Load(int argsNum, const char** args);
 
     };
-
-
 
     /* inference configuration */
     class InferenceConfig : public TranslationConfig
