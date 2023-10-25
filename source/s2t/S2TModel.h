@@ -93,12 +93,11 @@ namespace s2t
     //    /* make the mask of the encoder */
         void MakeS2TMaskEnc(XTensor& paddingEnc, XTensor& maskEnc);
 
-    //    /* make the mask of the decoder */
-    //    void MakeMTMaskDec(XTensor& paddingEnc, XTensor& paddingDec,
-    //        XTensor& maskDec, XTensor& maskEncDec);
-
     //    /* make the mask of the decoder for inference */
     //    XTensor MakeMTMaskDecInference(XTensor& paddingEnc);
+
+    //    /* make the lower triangle mask of the decoder for inference */
+        XTensor S2TModel::MakeS2TTriMaskDecInference(int batchSize = 1, int length = 1);
 
         /* get parameter matrices */
         void GetParams(TensorList& list);
