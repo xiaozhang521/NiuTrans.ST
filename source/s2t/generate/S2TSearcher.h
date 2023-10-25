@@ -50,6 +50,12 @@ namespace s2t {
         /* number of the start symbols */
         int startSymbolNum;
 
+        /* array of the suppress symbols */
+        int* suppressSymbol;
+
+        /* number of the suppress symbols */
+        int suppressSymbolNum;
+
         /* scalar of the input sequence (for max number of search steps) */
         float scalarMaxLength;
 
@@ -61,16 +67,26 @@ namespace s2t {
         /* initialize the model */
         void Init(S2TConfig& config);
 
+        /* initialize the start symbols */
         void InitStartSymbol(S2TConfig& config);
 
+        /* initialize the suppress symbols */
+        void InitSuppressSymbol(S2TConfig& config, int* tokens=NULL, const int num=0);
+
+        /* check if the token is an end symbol */
         bool IsEnd(int token);
 
         /* search for the most promising states */
         void Search(S2TModel* model, XTensor& input, XTensor& padding, IntList** outputs);
 
-        XTensor WhisperSuppress(XTensor& input);
+        XTensor Suppress(XTensor& input);
 
-        XTensor WhisperPredict(XTensor& tokens, XTensor& logits, XTensor& sumLogprobs);
+        XTensor Predict(XTensor& tokens, XTensor& logits, XTensor* sumLogprobs=NULL);
+
+    };
+
+    class S2TPredictor : public Predictor
+    {
 
     };
 
@@ -81,7 +97,7 @@ namespace s2t {
         float alpha;
 
         /* predictor */
-        Predictor predictor;
+        S2TPredictor predictor;
 
         /* max length of the generated sequence */
         int maxLen;
