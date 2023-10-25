@@ -63,6 +63,9 @@ public:
     /* transfrom a speech to a sequence */
     TripleSample* LoadSample(XTensor* s);
 
+    /* transfrom a speech to a sequence */
+    TripleSample* LoadSample(string s, int n_frames);
+
     /* transfrom a speech and a line to the sequence separately */
     TripleSample* LoadSample(XTensor* s, string line);
 

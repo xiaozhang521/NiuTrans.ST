@@ -49,9 +49,14 @@ struct TripleSample
 
 	/* the frame length for every speech */
 	int fLen;
+
 	/* the sequence of audio (a list of frames) */
 	/* currently saved as a tensor, length * channels */
+	/* storing with XTensor use casue memory problem */
 	XTensor* audioSeq;
+
+	/* the path to sequence of audio (a list of frames) */
+	string audioPath;
 
 	/* the sequence of source sentence (a list of tokens) */
 	IntList* srcSeq;
@@ -61,6 +66,9 @@ struct TripleSample
 
 	/* constructor */
 	TripleSample(XTensor* a, IntList* s = NULL, IntList* t = NULL, int myKey = -1);
+
+	/* constructor */
+	TripleSample(string p, int f, IntList* s = NULL, IntList* t = NULL, int myKey = -1);
 
 	/* de-constructor */
 	~TripleSample();
