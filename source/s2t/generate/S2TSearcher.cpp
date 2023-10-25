@@ -106,7 +106,7 @@ namespace s2t {
 		return input;
 	}
 
-	XTensor S2TGreedySearch::WhisperUpdate(XTensor& tokens, XTensor& logits, XTensor& sumLogprobs)
+	XTensor S2TGreedySearch::WhisperPredict(XTensor& tokens, XTensor& logits, XTensor& sumLogprobs)
 	{	
 		// logits b * l * v
 		/*TODO Temperature sets to 0.0*/
@@ -193,7 +193,6 @@ namespace s2t {
 		maskDec = model->MakeS2TTriMaskDecInference(batchSize, inputDec.GetDim(-1));
 		// maskDec.Dump(stderr, "maskEncDec: ", -1);
 
-		// lengthLimit = 24;
 		model->decoder->embedder->scale = FALSE;
 		
 		for (int l = 0; l < lengthLimit; l++) {
@@ -208,7 +207,7 @@ namespace s2t {
 				if ( l == 0 )
 					decoding = model->decoder->RunFastPreNorm(inputDec, encoding, &maskDec, NULL, nstep);
 				else
-					decoding = model->decoder->RunFastPreNorm(inputDec, encoding, NULL, nstep);
+					decoding = model->decoder->RunFastPreNorm(inputDec, encoding, NULL, NULL, nstep);
 
 				// FILE* decOutput = fopen("../tools/data/decOutput.bin", "wb");
 				// decoding.BinaryDump(decOutput);
@@ -238,18 +237,15 @@ namespace s2t {
 			/*apply the logit filters*/
 			XTensor logitsFilted;
 			logitsFilted = WhisperSuppress(logits);
-			// logitsFilted.Dump(stderr, "logitsFilted: ", 10);
 
 			/*calculate next token*/
 			XTensor sumLogprobs, nextToken;
-			bool finished = false;
 			InitTensor1D(&sumLogprobs, batchSize, X_FLOAT, logitsFilted.devID);
-			nextToken = WhisperUpdate(inputDec, logitsFilted, sumLogprobs);
+			nextToken = WhisperPredict(inputDec, logitsFilted, sumLogprobs);
 			// nextToken.Dump(stderr, "New inputDec: ", -1);
 
 			/* save the predictions */
 			CopyValues(nextToken, indexCPU);
-
 
 			for (int i = 0; i < batchSize; i++) {
 				if (IsEnd(indexCPU.GetInt(i)))
