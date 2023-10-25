@@ -33,6 +33,8 @@ namespace s2t {
 		endSymbols = new int[32];
 		startSymbolNum = 0;
 		startSymbol = new int[32];
+		suppressSymbolNum = 0;
+		suppressSymbol = new int[100];
 		scalarMaxLength = -1;
 	}
 
@@ -42,6 +44,8 @@ namespace s2t {
 			delete[] endSymbols;
 		if (startSymbol != NULL)
 			delete[] startSymbol;
+		if (suppressSymbol != NULL)
+			delete[] suppressSymbol;
 	}
 
 	void S2TGreedySearch::Init(S2TConfig& config)
@@ -58,14 +62,29 @@ namespace s2t {
 			startSymbolNum = 1;
 
 		InitStartSymbol(config);
+
+		const int tokenNum = 88;
+		// blank 220
+		// <eot> 50257
+		int suppressTokens[tokenNum] = { 1, 2, 7, 8, 9, 10, 14, 25, 26, 27,
+								28, 29, 31, 58, 59, 60, 61, 62, 63, 90,
+								91, 92, 93, 359, 503, 522, 542, 873, 893,
+								902, 918, 922, 931, 1350, 1853, 1982, 2460, 2627, 3246,
+								3253, 3268, 3536, 3846, 3961, 4183, 4667, 6585, 6647, 7273,
+								9061, 9383, 10428, 10929, 11938, 12033, 12331, 12562, 13793, 14157,
+								14635, 15265, 15618, 16553, 16604, 18362, 18956, 20075, 21675, 22520,
+								26130, 26161, 26435, 28279, 29464, 31650, 32302, 32470, 36865, 42863,
+								47425, 49870, 50254, 50258, 50358, 50359, 50360, 50361, 50362 };
+
+		InitSuppressSymbol(config, suppressTokens, tokenNum);
 	}
 
 	void S2TGreedySearch::InitStartSymbol(S2TConfig& config)
 	{
 		CheckNTErrors(strcmp(config.whisperdec.language, "") != 0, "Invalid language tag");
-		startSymbol[startSymbolNum++] = 50259; // en
+		startSymbol[startSymbolNum++] = 50259; // en 50259
 		startSymbol[startSymbolNum++] = 50359;
-		startSymbol[startSymbolNum++] = 50363;	// notimestamps
+		startSymbol[startSymbolNum++] = 50363; // notimestamps
 	}
 
 	bool S2TGreedySearch::IsEnd(int token)
@@ -80,33 +99,44 @@ namespace s2t {
 		return false;
 	}
 
-	XTensor S2TGreedySearch::WhisperSuppress(XTensor& input)
+	void S2TGreedySearch::InitSuppressSymbol(S2TConfig& config, int* tokens, const int num)
+	{
+		if ( num > 0 )
+		{
+			/*init suppress symbol from tokens*/ 
+			CheckNTErrors(num <= 100, "Invalid suppress token length ( should less than 100 )");
+			suppressSymbolNum = num;
+			// blank 220
+			// <eot> 50257
+			for (int i = 0; i < suppressSymbolNum; i++) {
+				suppressSymbol[i] = tokens[i];
+			}
+		}
+		else {
+			/*init suppress symbol from config*/
+			/*TODO*/
+
+		}
+		
+	}
+
+	XTensor S2TGreedySearch::Suppress(XTensor& input)
 	{
 		XTensor modify;
 		InitTensor3D(&modify, 1, 1, 1, X_FLOAT, input.devID);
 		modify = ScaleAndShift(modify, 0.0, -1e9);
-		
-		const int tokenNum = 88;
-		// blank 220
-		// <eot> 50257
-		int suppressTokens[tokenNum] = { 1, 2, 7, 8, 9, 10, 14, 25, 26, 27,
-								28, 29, 31, 58, 59, 60, 61, 62, 63, 90,
-								91, 92, 93, 359, 503, 522, 542, 873, 893,
-								902, 918, 922, 931, 1350, 1853, 1982, 2460, 2627, 3246,
-								3253, 3268, 3536, 3846, 3961, 4183, 4667, 6585, 6647, 7273,
-								9061, 9383, 10428, 10929, 11938, 12033, 12331, 12562, 13793, 14157,
-								14635, 15265, 15618, 16553, 16604, 18362, 18956, 20075, 21675, 22520,
-								26130, 26161, 26435, 28279, 29464, 31650, 32302, 32470, 36865, 42863,
-								47425, 49870, 50254, 50258, 50358, 50359, 50360, 50361, 50362 };
 
-		for (int i = 0; i < tokenNum; i++) {
-			_SetDataIndexed(&input, &modify, input.order - 1, suppressTokens[i]);
+		if (suppressSymbolNum <= 0)
+			return input;
+
+		for (int i = 0; i < suppressSymbolNum; i++) {
+			_SetDataIndexed(&input, &modify, input.order - 1, suppressSymbol[i]);
 		}
 
 		return input;
 	}
 
-	XTensor S2TGreedySearch::WhisperPredict(XTensor& tokens, XTensor& logits, XTensor& sumLogprobs)
+	XTensor S2TGreedySearch::Predict(XTensor& tokens, XTensor& logits, XTensor* sumLogprobs)
 	{	
 		// logits b * l * v
 		/*TODO Temperature sets to 0.0*/
@@ -173,7 +203,7 @@ namespace s2t {
 		for (int i = 0; i < batchSize; i++)
 			finishedFlags[i] = 0;
 
-		XTensor prob;
+		XTensor prob, nextToken;
 		XTensor maskDec;
 		XTensor decoding;
 		XTensor indexCPU;
@@ -186,7 +216,8 @@ namespace s2t {
 		// encoding.BinaryRead(audioFeature);
 
 		// encoding.Dump(stderr, "Decoder input(Encoder output): ", 20);
-		// inputDec.Dump(stderr, "Decoder input(Tokens): ", -1);
+		inputDec.Dump(stderr, "Decoder input(Tokens): ", -1);
+
 		int initTokenLen = inputDec.GetDim(-1);
 
 		/* decoder mask */
@@ -217,31 +248,33 @@ namespace s2t {
 				//decoding = model->decoder->RunFastPostNorm(inputDec, encoding, &maskEncDec, l);
 
 			/* generate the output probabilities */
-			XTensor logits;
-			logits = MMul(decoding, X_NOTRANS, *model->outputLayer->w, X_TRANS);
+			/*TODO*/
+			bool outputSoftmax = FALSE;
+			if (outputSoftmax)
+				prob = model->outputLayer->Make(decoding, false);
+			else
+				prob = MMul(decoding, X_NOTRANS, *model->outputLayer->w, X_TRANS);
 
 			// FILE* probOutput = fopen("../tools/data/probOutput.bin", "wb");
 			// logits.BinaryDump(probOutput);
 			// logits.Dump(stderr, "probOutput: ", 10);
 
-			/*calculate prob of no_speech*/
+			/*calculate prob of no_speech (whisper) */
 			if (l == 0) {
 				// no speech token 50362 TODO
 
 			}
 
 			/*only consider the last token*/
-			logits = SelectRange(logits, 1, logits.GetDim(1) - 1, logits.GetDim(1));
+			prob = SelectRange(prob, 1, prob.GetDim(1) - 1, prob.GetDim(1));
 			// logits.Dump(stderr, "logits: ", 10);
 
 			/*apply the logit filters*/
-			XTensor logitsFilted;
-			logitsFilted = WhisperSuppress(logits);
+			XTensor probFilted;
+			probFilted = Suppress(prob);
 
 			/*calculate next token*/
-			XTensor sumLogprobs, nextToken;
-			InitTensor1D(&sumLogprobs, batchSize, X_FLOAT, logitsFilted.devID);
-			nextToken = WhisperPredict(inputDec, logitsFilted, sumLogprobs);
+			nextToken = Predict(inputDec, probFilted);
 			// nextToken.Dump(stderr, "New inputDec: ", -1);
 
 			/* save the predictions */
