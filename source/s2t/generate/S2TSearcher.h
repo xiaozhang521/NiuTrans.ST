@@ -70,7 +70,8 @@ namespace s2t {
 
         XTensor WhisperSuppress(XTensor& input);
 
-        XTensor WhisperUpdate(XTensor& tokens, XTensor& logits, XTensor& sumLogprobs);
+        XTensor WhisperPredict(XTensor& tokens, XTensor& logits, XTensor& sumLogprobs);
+
     };
 
     class S2TBeamSearch : public BeamSearch
