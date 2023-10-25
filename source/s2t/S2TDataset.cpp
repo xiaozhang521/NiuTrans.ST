@@ -164,6 +164,16 @@ TripleSample::TripleSample(XTensor * a, IntList * s, IntList * t, int myKey) {
     bucketKey = myKey;
 }
 
+/* constructor */
+TripleSample::TripleSample(string p, int f, IntList* s, IntList* t, int myKey) {
+    index = -1;
+    audioPath = p;
+    srcSeq = s;
+    tgtSeq = t;
+    fLen = f;
+    bucketKey = myKey;
+}
+
 /* de-constructor */
 TripleSample::~TripleSample() {
     //if (audioSeq != NULL)

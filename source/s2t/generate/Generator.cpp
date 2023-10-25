@@ -118,7 +118,7 @@ namespace s2t
     bool Generator::Generate()
     {
         batchLoader.Init(*config, false);
-
+        
         /* inputs */
         XTensor batchEnc;
         XTensor paddingEnc;
@@ -132,9 +132,12 @@ namespace s2t
         inputs.Add(&paddingEnc);
         info.Add(&wordCount);
         info.Add(&indices);
-
+        //TripleSample* longestSample = (TripleSample*)(batchLoader.buf->Get(0));
+        //std::cout << longestSample->audioPath << endl;
+        //longestSample->audioSeq->Dump();
         batchLoader.GetBatchSimple(&inputs, &info);
-        DecodingBatch(batchEnc, paddingEnc, indices);
+        batchEnc.Dump();
+        //DecodingBatch(batchEnc, paddingEnc, indices);
         return true;
     }
 

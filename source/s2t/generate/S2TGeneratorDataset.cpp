@@ -23,6 +23,7 @@
 #include "S2TGeneratorDataset.h"
 #include "../../niutensor/tensor/XTensor.h"
 #include <unordered_map>
+#include "../../niutensor/tensor/core/CHeader.h"
 
 using namespace nts;
 
@@ -36,6 +37,12 @@ TripleSample* S2TGeneratorDataset::LoadSample(XTensor* s)
     return sample;
 }
 
+/* transfrom a speech to a sequence */
+TripleSample* S2TGeneratorDataset::LoadSample(string s, int n_frames)
+{
+    TripleSample* sample = new TripleSample(s, n_frames);
+    return sample;
+}
 
 /* transfrom a speech and a line to the sequence separately */
 TripleSample* S2TGeneratorDataset::LoadSample(XTensor* s, string line)
@@ -69,9 +76,7 @@ TripleSample* S2TGeneratorDataset::LoadSample()
     return nullptr;
 }
 
-/*
-read data from a file to the buffer
-*/
+/* read data from a file to the buffer */
 bool S2TGeneratorDataset::LoadBatchToBuf()
 {
     int id = 0;
@@ -102,6 +107,8 @@ bool S2TGeneratorDataset::LoadBatchToBuf()
     int tagIndex = find(tags, tags + 5, tmpTag) - tags;
     if (tagIndex < 5)
         tagsMap[tmpTag] = cot;
+    /*TODO!! Multi audio check here!*/
+    //XTensor inputAudio;
     while (getline(*ifp, line) && id < config->common.bufSize) {
 
         /* handle empty lines */
@@ -117,22 +124,27 @@ bool S2TGeneratorDataset::LoadBatchToBuf()
             }
             tmpStrings.push_back(line.substr(start, index - start));
 
-            XTensor inputAudio;
-            InitTensor2D(&inputAudio, (int)stol(tmpStrings[tagsMap["frames"]]), config->s2tmodel.fbank, X_FLOAT, config->common.devID);
-            FILE* audioFile = fopen(tmpStrings[tagsMap["audio"]].data(), "rb");
-            if (audioFile)
-                inputAudio.BinaryRead(audioFile);
-            TripleSample* sequence = LoadSample(&inputAudio);
+            
+            //InitTensor2D(&inputAudio, (int)stol(tmpStrings[tagsMap["frames"]]), config->s2tmodel.fbank, X_FLOAT, config->common.devID);
+            //FILE* audioFile = fopen(tmpStrings[tagsMap["audio"]].data(), "rb");
+            //if (audioFile)
+            //    inputAudio.BinaryRead(audioFile);
+            
+            //TripleSample* sequence = LoadSample(&inputAudio);
+            TripleSample* sequence = LoadSample(tmpStrings[tagsMap["audio"]], (int)stol(tmpStrings[tagsMap["frames"]]));
             sequence->index = id;
             buf->Add(sequence);
+            TripleSample* tmpa = (TripleSample*)buf->Get(0);
+            //tmpa->audioSeq->Dump(stderr, 0, 10);
+            //printf("%s\n", tmpa->audioSeq);
+            //printf("%p\n", tmpa->audioSeq->data);
+            std::cout << tmpa->audioPath << endl;
         }
         else {
             emptyLines.Add(id);
         }
-
         id++;
     }
-
     /* hacky code to solve the issue with fp16 */
     /* TODO!!! update the empty line */
     /*appendEmptyLine = false;
@@ -145,8 +157,8 @@ bool S2TGeneratorDataset::LoadBatchToBuf()
         buf->Add(sequence);
         appendEmptyLine = true;
     }*/
-
-    SortBySrcLengthDescending();
+    
+    SortByAudioLengthDescending();
     XPRINT1(0, stderr, "[INFO] loaded %d sentences\n", appendEmptyLine ? id - 1 : id);
 
     return true;
@@ -171,8 +183,8 @@ bool S2TGeneratorDataset::GetBatchSimple(XList* inputs, XList* info)
     int realBatchSize = 1;
 
     /* get the maximum sequence length in a mini-batch */
-    TripleSample* longestsample = (TripleSample*)(buf->Get(bufIdx));
-    int maxLen = longestsample->fLen;
+    TripleSample* longestSample = (TripleSample*)(buf->Get(bufIdx));
+    int maxLen = longestSample->fLen;
 
     /* we choose the max-token strategy to maximize the throughput */
     while (realBatchSize * maxLen * config->inference.beamSize < config->common.wBatchSize
@@ -188,13 +200,13 @@ bool S2TGeneratorDataset::GetBatchSimple(XList* inputs, XList* info)
 
     CheckNTErrors(maxLen != 0, "Invalid length");
 
-    int* batchValues = new int[realBatchSize * maxLen];
-    float* paddingValues = new float[realBatchSize * maxLen];
+    //int* batchValues = new int[realBatchSize * maxLen];
+    //float* paddingValues = new float[realBatchSize * maxLen];
 
-    for (int i = 0; i < realBatchSize * maxLen; i++) {
+    /*for (int i = 0; i < realBatchSize * maxLen; i++) {
         batchValues[i] = srcVocab.padID;
         paddingValues[i] = 1.0F;
-    }
+    }*/
 
     int* totalLength = (int*)(info->Get(0));
     IntList* indices = (IntList*)(info->Get(1));
@@ -203,32 +215,45 @@ bool S2TGeneratorDataset::GetBatchSimple(XList* inputs, XList* info)
 
     /* right padding */
     /* TODO!!! Check the length of audio */
-    /*int curSrc = 0;
+    XTensor* batchEnc = (XTensor*)(inputs->Get(0));
+    XTensor* paddingEnc = (XTensor*)(inputs->Get(1));
+    //int curSrc = 0;
+    //XTensor* inputFeature = NULL;
     for (int i = 0; i < realBatchSize; ++i) {
-        TripleSample* sequence = (TripleSample*)(buf->Get(bufIdx + i));
-        IntList* src = sequence->srcSeq;
-        indices->Add(sequence->index);
-        *totalLength += src->Size();
+        TripleSample* sample = (TripleSample*)(buf->Get(bufIdx + i));
+        //IntList* src = sample->srcSeq;
+        InitTensor2D(batchEnc, sample->fLen, config->s2tmodel.fbank, X_FLOAT, config->common.devID);
+        FILE* audioFile = fopen(sample->audioPath.data(), "rb");
+        if (audioFile)
+            batchEnc->BinaryRead(audioFile);
+        //XTensor* speechFeature = sample->audioSeq;
+        //speechFeature->Dump();
+        indices->Add(sample->index);
+        *totalLength += sample->fLen;
+        /*if (inputFeature == NULL)
+        {
+            inputFeature = speechFeature;
+            Squeeze(*inputFeature, 0);
+            inputFeature->Dump();
+        }*/
+        //curSrc = maxLen * i;
+        //memcpy(&(batchValues[curSrc]), src->items, sizeof(int) * src->Size());
+        //curSrc += src->Size();
 
-        curSrc = maxLen * i;
-        memcpy(&(batchValues[curSrc]), src->items, sizeof(int) * src->Size());
-        curSrc += src->Size();
-
-        while (curSrc < maxLen * (i + 1))
-            paddingValues[curSrc++] = 0.0F;
-    }*/
+        //while (curSrc < maxLen * (i + 1))
+        //    paddingValues[curSrc++] = 0.0F;
+    }
 
     bufIdx += realBatchSize;
 
-    XTensor* batchEnc = (XTensor*)(inputs->Get(0));
-    XTensor* paddingEnc = (XTensor*)(inputs->Get(1));
-    InitTensor2D(batchEnc, realBatchSize, maxLen, X_INT, config->common.devID);
-    InitTensor2D(paddingEnc, realBatchSize, maxLen, config->common.useFP16 ? X_FLOAT : X_FLOAT, config->common.devID);
-    batchEnc->SetData(batchValues, batchEnc->unitNum);
-    paddingEnc->SetData(paddingValues, paddingEnc->unitNum);
+    //batchEnc = speechFeature
+    //InitTensor2D(batchEnc, realBatchSize, maxLen, X_INT, config->common.devID);
+    //InitTensor2D(paddingEnc, realBatchSize, maxLen, config->common.useFP16 ? X_FLOAT : X_FLOAT, config->common.devID);
+    //batchEnc->SetData(batchValues, batchEnc->unitNum);
+    //paddingEnc->SetData(paddingValues, paddingEnc->unitNum);
 
-    delete[] batchValues;
-    delete[] paddingValues;
+    //delete[] batchValues;
+    //delete[] paddingValues;
 
     return true;
 }
@@ -269,6 +294,11 @@ void S2TGeneratorDataset::Init(S2TConfig& myConfig, bool notUsed)
         ifp = &cin;
 
     LoadBatchToBuf();
+    //TripleSample* tmpa = (TripleSample*)buf->Get(0);
+    //tmpa->audioSeq->Dump(stderr, 0, 10);
+    //printf("%p\n", tmpa->audioSeq);
+    //printf("%p\n", tmpa->audioSeq->data);
+    //std::cout << tmpa->audioPath << endl;
 }
 
 /* check if the buffer is empty */
