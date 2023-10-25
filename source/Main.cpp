@@ -45,19 +45,20 @@ int main(int argc, const char** argv)
     S2TConfig config(argc, argv);
     S2TModel model;
     model.InitModel(config);
-    config.showConfig();
+    //config.showConfig();
 
-    model.TestDumpParams(&model.encoder->selfAtts[1].weightQ);
+    //model.TestDumpParams(&model.encoder->selfAtts[1].weightQ);
 
-    cout << "Tgt Vocab File: " << config.common.tgtVocabFN << endl;
-    S2TVocab vocab;
-    vocab.Load(config.common.tgtVocabFN);
+    //cout << "Tgt Vocab File: " << config.common.tgtVocabFN << endl;
+    //S2TVocab vocab;
+    //vocab.Load(config.common.tgtVocabFN);
     // vocab.ShowVocab();
-    vocab.Test();
+    //vocab.Test();
 
     Generator generator;
     generator.Init(config, model);
-    generator.TestInference();
+    generator.Generate();
+    //generator.TestInference();
 
 
     //generator.generate(); 
