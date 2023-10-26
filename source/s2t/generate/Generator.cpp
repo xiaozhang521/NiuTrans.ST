@@ -129,7 +129,7 @@ namespace s2t
         //TripleSample* longestSample = (TripleSample*)(batchLoader.buf->Get(0));
         //std::cout << longestSample->audioPath << endl;
         //longestSample->audioSeq->Dump();
-        //batchLoader.GetBatchSimple(&inputs, &info);
+        batchLoader.GetBatchSimple(&inputs, &info);
         //batchEnc.Dump();
         //DecodingBatch(batchEnc, paddingEnc, indices);
 
@@ -137,11 +137,11 @@ namespace s2t
         //batchLoader.GetBatchSimple(&inputs, &info);
         // batchEnc.Dump(stderr, NULL, -1);
         
-        InitTensor3D(&batchEnc, 1, 3000, 80, X_FLOAT, config->common.devID);    // b * l * f
-        FILE* audioFile = fopen("../tools/data/batch.bin.using", "rb");
-        if (audioFile) {
-            batchEnc.BinaryRead(audioFile);
-        }
+        //InitTensor3D(&batchEnc, 1, 3000, 80, X_FLOAT, config->common.devID);    // b * l * f
+        //FILE* audioFile = fopen("../tools/data/batch.bin.using", "rb");
+        //if (audioFile) {
+        //    batchEnc.BinaryRead(audioFile);
+        //}
         
         XTensor paddingEncForAudio;
         InitTensor2D(&paddingEncForAudio, batchEnc.GetDim(0), int(batchEnc.GetDim(1)/2), X_FLOAT, config->common.devID);
