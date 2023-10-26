@@ -78,6 +78,7 @@ namespace s2t
         if (batchEnc.order == 2) {
             isSingle = 1;
             batchEnc = Unsqueeze(batchEnc, 0, 1);
+            paddingEnc = Unsqueeze(paddingEnc, 0, 1);
         }
 
         // begin decoding task
@@ -144,7 +145,12 @@ namespace s2t
         //}
         
         XTensor paddingEncForAudio;
-        InitTensor2D(&paddingEncForAudio, batchEnc.GetDim(0), int(batchEnc.GetDim(1)/2), X_FLOAT, config->common.devID);
+        if (batchEnc.order == 3)
+            InitTensor2D(&paddingEncForAudio, batchEnc.GetDim(0), int(batchEnc.GetDim(1)/2), X_FLOAT, config->common.devID);
+        else if (batchEnc.order == 2)
+            InitTensor1D(&paddingEncForAudio, int(batchEnc.GetDim(0) / 2), X_FLOAT, config->common.devID);
+        else
+            CheckNTErrors(false, "Invalid batchEnc size\n");
         paddingEncForAudio = paddingEncForAudio * 0 + 1;
 
         DecodingBatch(batchEnc, paddingEncForAudio, indices);
