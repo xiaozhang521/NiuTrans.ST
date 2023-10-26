@@ -32,9 +32,9 @@ namespace s2t {
 		endSymbolNum = 0;
 		endSymbols = new int[32];
 		startSymbolNum = 0;
-		startSymbol = new int[32];
+		startSymbols = new int[32];
 		suppressSymbolNum = 0;
-		suppressSymbol = new int[100];
+		suppressSymbols = new int[100];
 		scalarMaxLength = -1;
 	}
 
@@ -42,10 +42,10 @@ namespace s2t {
 	{
 		if (endSymbols != NULL)
 			delete[] endSymbols;
-		if (startSymbol != NULL)
-			delete[] startSymbol;
-		if (suppressSymbol != NULL)
-			delete[] suppressSymbol;
+		if (startSymbols != NULL)
+			delete[] startSymbols;
+		if (suppressSymbols != NULL)
+			delete[] suppressSymbols;
 	}
 
 	void S2TGreedySearch::Init(S2TConfig& config)
@@ -53,15 +53,15 @@ namespace s2t {
 		maxLen = config.inference.maxLen;
 		batchSize = config.common.sBatchSize;
 		endSymbols[0] = config.model.eos;
-		startSymbol[0] = config.model.sos;
+		startSymbols[0] = config.model.sos;
 		scalarMaxLength = config.inference.maxLenAlpha;
 
 		if (endSymbols[0] >= 0)
 			endSymbolNum = 1;
-		if (startSymbol[0] >= 0)
+		if (startSymbols[0] >= 0)
 			startSymbolNum = 1;
 
-		InitStartSymbol(config);
+		InitStartSymbols(config);
 
 		const int tokenNum = 88;
 		// blank 220
@@ -76,15 +76,15 @@ namespace s2t {
 								26130, 26161, 26435, 28279, 29464, 31650, 32302, 32470, 36865, 42863,
 								47425, 49870, 50254, 50258, 50358, 50359, 50360, 50361, 50362 };
 
-		InitSuppressSymbol(config, suppressTokens, tokenNum);
+		InitSuppressSymbols(config, suppressTokens, tokenNum);
 	}
 
-	void S2TGreedySearch::InitStartSymbol(S2TConfig& config)
+	void S2TGreedySearch::InitStartSymbols(S2TConfig& config)
 	{
 		CheckNTErrors(strcmp(config.whisperdec.language, "") != 0, "Invalid language tag");
-		startSymbol[startSymbolNum++] = 50259; // en 50259
-		startSymbol[startSymbolNum++] = 50359;
-		startSymbol[startSymbolNum++] = 50363; // notimestamps
+		startSymbols[startSymbolNum++] = 50259; // en 50259
+		startSymbols[startSymbolNum++] = 50359;
+		startSymbols[startSymbolNum++] = 50363; // notimestamps
 	}
 
 	bool S2TGreedySearch::IsEnd(int token)
@@ -99,7 +99,7 @@ namespace s2t {
 		return false;
 	}
 
-	void S2TGreedySearch::InitSuppressSymbol(S2TConfig& config, int* tokens, const int num)
+	void S2TGreedySearch::InitSuppressSymbols(S2TConfig& config, int* tokens, const int num)
 	{
 		if ( num > 0 )
 		{
@@ -109,7 +109,7 @@ namespace s2t {
 			// blank 220
 			// <eot> 50257
 			for (int i = 0; i < suppressSymbolNum; i++) {
-				suppressSymbol[i] = tokens[i];
+				suppressSymbols[i] = tokens[i];
 			}
 		}
 		else {
@@ -130,7 +130,7 @@ namespace s2t {
 			return input;
 
 		for (int i = 0; i < suppressSymbolNum; i++) {
-			_SetDataIndexed(&input, &modify, input.order - 1, suppressSymbol[i]);
+			_SetDataIndexed(&input, &modify, input.order - 1, suppressSymbols[i]);
 		}
 
 		return input;
@@ -194,7 +194,7 @@ namespace s2t {
 		/* the first token */
 		XTensor inputDec;
 		InitTensor1D(&inputDec, startSymbolNum, X_INT, input.devID);
-		inputDec.SetData(startSymbol, startSymbolNum);
+		inputDec.SetData(startSymbols, startSymbolNum);
 		inputDec = Unsqueeze(inputDec, 0, batchSize);
 
 
@@ -313,6 +313,97 @@ namespace s2t {
 		cout << "--- S2TGreedySearch Search End ---" << endl;
 	}
 
-	
+	S2TBeamSearch::S2TBeamSearch()
+	{
+		alpha = 0;
+		maxLen = 0;
+		beamSize = 0;
+		batchSize = 0;
+		endSymbolNum = 0;
+		startSymbolNum = 0;
+		suppressSymbolNum = 0;
+		fullHypos = NULL;
+		endSymbols = new int[32];
+		startSymbols = new int[32];
+		suppressSymbols = new int[32];
+		isEarlyStop = false;
+		needReorder = false;
+		scalarMaxLength = 0.0F;
+	}
+
+	/* de-constructor */
+	S2TBeamSearch::~S2TBeamSearch()
+	{
+		if (fullHypos != NULL)
+			delete[] fullHypos;
+		if (endSymbols != NULL)
+			delete[] endSymbols;
+		if (startSymbols != NULL)
+			delete[] startSymbols;
+		if (suppressSymbols != NULL)
+			delete[] suppressSymbols;
+	}
+
+	void S2TBeamSearch::Init(S2TConfig& config)
+	{
+		maxLen = config.inference.maxLen;
+		beamSize = config.inference.beamSize;
+		batchSize = config.common.sBatchSize;
+		alpha = config.inference.lenAlpha;
+		endSymbols[0] = config.model.eos;
+		startSymbols[0] = config.model.sos;
+		scalarMaxLength = config.inference.maxLenAlpha;
+
+		if (endSymbols[0] >= 0)
+			endSymbolNum = 1;
+		if (startSymbols[0] >= 0)
+			startSymbolNum = 1;
+
+		InitStartSymbols(config);
+
+		const int tokenNum = 88;
+		// blank 220
+		// <eot> 50257
+		int suppressTokens[tokenNum] = { 1, 2, 7, 8, 9, 10, 14, 25, 26, 27,
+								28, 29, 31, 58, 59, 60, 61, 62, 63, 90,
+								91, 92, 93, 359, 503, 522, 542, 873, 893,
+								902, 918, 922, 931, 1350, 1853, 1982, 2460, 2627, 3246,
+								3253, 3268, 3536, 3846, 3961, 4183, 4667, 6585, 6647, 7273,
+								9061, 9383, 10428, 10929, 11938, 12033, 12331, 12562, 13793, 14157,
+								14635, 15265, 15618, 16553, 16604, 18362, 18956, 20075, 21675, 22520,
+								26130, 26161, 26435, 28279, 29464, 31650, 32302, 32470, 36865, 42863,
+								47425, 49870, 50254, 50258, 50358, 50359, 50360, 50361, 50362 };
+
+		InitSuppressSymbols(config, suppressTokens, tokenNum);
+	}
+
+	void S2TBeamSearch::InitStartSymbols(S2TConfig& config)
+	{
+		CheckNTErrors(strcmp(config.whisperdec.language, "") != 0, "Invalid language tag");
+		startSymbols[startSymbolNum++] = 50259; // en 50259
+		startSymbols[startSymbolNum++] = 50359;
+		startSymbols[startSymbolNum++] = 50363; // notimestamps
+	}
+
+	void S2TBeamSearch::InitSuppressSymbols(S2TConfig& config, int* tokens, const int num)
+	{
+		if (num > 0)
+		{
+			/*init suppress symbol from tokens*/
+			CheckNTErrors(num <= 100, "Invalid suppress token length ( should less than 100 )");
+			suppressSymbolNum = num;
+			// blank 220
+			// <eot> 50257
+			for (int i = 0; i < suppressSymbolNum; i++) {
+				suppressSymbols[i] = tokens[i];
+			}
+		}
+		else {
+			/*init suppress symbol from config*/
+			/*TODO*/
+
+		}
+
+	}
 
 }
