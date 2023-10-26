@@ -45,13 +45,13 @@ namespace s2t {
         int endSymbolNum;
 
         /* array of the start symbols */
-        int* startSymbol;
+        int* startSymbols;
 
         /* number of the start symbols */
         int startSymbolNum;
 
         /* array of the suppress symbols */
-        int* suppressSymbol;
+        int* suppressSymbols;
 
         /* number of the suppress symbols */
         int suppressSymbolNum;
@@ -68,10 +68,10 @@ namespace s2t {
         void Init(S2TConfig& config);
 
         /* initialize the start symbols */
-        void InitStartSymbol(S2TConfig& config);
+        void InitStartSymbols(S2TConfig& config);
 
         /* initialize the suppress symbols */
-        void InitSuppressSymbol(S2TConfig& config, int* tokens=NULL, const int num=0);
+        void InitSuppressSymbols(S2TConfig& config, int* tokens=NULL, const int num=0);
 
         /* check if the token is an end symbol */
         bool IsEnd(int token);
@@ -123,6 +123,12 @@ namespace s2t {
         /* number of the start symbols */
         int startSymbolNum;
 
+        /* suppress symbol */
+        int* suppressSymbols;
+
+        /* number of the suppress symbols */
+        int suppressSymbolNum;
+
         /* scalar of the input sequence (for max number of search steps) */
         float scalarMaxLength;
 
@@ -149,6 +155,12 @@ namespace s2t {
 
         /* initialize the model */
         void Init(S2TConfig& config);
+
+        /* initialize the start symbols */
+        void InitStartSymbols(S2TConfig& config);
+
+        /* initialize the suppress symbols */
+        void InitSuppressSymbols(S2TConfig& config, int* tokens = NULL, const int num = 0);
 
         /* search for the most promising states */
         void Search(S2TModel* model, XTensor& input, XTensor& padding, IntList** output, XTensor& score);
