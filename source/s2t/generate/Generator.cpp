@@ -96,6 +96,11 @@ namespace s2t
         if (config->inference.beamSize == 1) {
             ((S2TGreedySearch*)seacher)->Search(model, batchEnc, paddingEnc, outputs);
         }
+        else {
+            XTensor score;
+            ((S2TBeamSearch*)seacher)->Search(model, batchEnc, paddingEnc, outputs, score);
+        }
+
 
 
 
