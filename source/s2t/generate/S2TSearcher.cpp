@@ -406,4 +406,32 @@ namespace s2t {
 
 	}
 
+	/*
+	search for the most promising states
+	>> model - the transformer model
+	>> input - input of the model
+	>> padding - padding of the input
+	>> outputs - outputs that represent the sequences as rows
+	>> score - score of the sequences
+	*/
+	void S2TBeamSearch::Search(S2TModel* model, XTensor& input, XTensor& padding, IntList** output, XTensor& score)
+	{
+		cout << "----- S2TBeamSearch Search -----" << endl;
+		
+		S2TPredictor predictor;
+		XTensor maskEnc;
+		XTensor encoding;
+		XTensor encodingBeam;
+		XTensor inputBeam;
+		XTensor paddingBeam;
+
+		CheckNTErrors(endSymbolNum > 0, "The search class is not initialized!");
+		CheckNTErrors(startSymbolNum > 0, "The search class is not initialized!");
+
+		Prepare(input.GetDim(0), beamSize);
+
+		/* encoder mask */
+		model->MakeS2TMaskEnc(padding, maskEnc);
+	}
+
 }
