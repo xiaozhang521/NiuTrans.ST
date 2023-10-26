@@ -53,9 +53,10 @@ namespace s2t {
         // Enables more exact compatibility with HTK, for testing purposes.  Affects
         // mel-energy flooring and reproduces a bug in HTK.
         bool htk_mode;
+        std::string customFilter;
         explicit MelBanksOptions(int num_bins = 23)
             : num_bins(num_bins), low_freq(20), high_freq(0), vtln_low(100),
-            vtln_high(-500), debug_mel(false), htk_mode(false) {}
+            vtln_high(-500), debug_mel(false), htk_mode(false), customFilter("C:\\Code\\VS\\NiuTrans.ST\\mel.csv") {}
     };
 
     struct FbankOptions {
@@ -78,7 +79,7 @@ namespace s2t {
             raw_energy(true),
             htk_compat(false),
             use_log_fbank(true),
-            oneSide(true),
+            oneSide(false),
             use_power(true) {}
     };
 

@@ -71,8 +71,8 @@ namespace s2t {
             frame_length_ms(25.0),
             dither(0.0),
             preemph_coeff(0),
-            remove_dc_offset(true),
-            window_type("hanning"),
+            remove_dc_offset(false),
+            window_type("hanning_periodic"),
             round_to_power_of_two(false),
             blackman_coeff(0.42),
             snip_edges(true),
@@ -302,18 +302,18 @@ namespace s2t {
             }
             else if (computer_.GetFrameOptions().padMod == "reflect") {
                 temp.SetData(wave.GetCell(&index, 1), wave.GetDim(0), computer_.GetFrameOptions().torchPaddingLength);
-                for (int i = 1; i <= computer_.GetFrameOptions().torchPaddingLength; i++) {
-                    temp.Set1D(wave.Get1D(i - 1), computer_.GetFrameOptions().torchPaddingLength - i);
-                    temp.Set1D(wave.Get1D(wave.GetDim(0) - i), temp.GetDim(0) - computer_.GetFrameOptions().torchPaddingLength + i - 1);
+                for (int i = 0; i <= computer_.GetFrameOptions().torchPaddingLength; i++) {
+                    temp.Set1D(wave.Get1D(i), computer_.GetFrameOptions().torchPaddingLength - i);
+                    temp.Set1D(wave.Get1D(wave.GetDim(0) - i - 1), temp.GetDim(0) - computer_.GetFrameOptions().torchPaddingLength + i - 1);
                     /*
-                    std::cout << wave.Get1D(i - 1) << " || " 
+                    std::cout << wave.Get1D(i) << " || " 
                         << temp.Get1D(computer_.GetFrameOptions().torchPaddingLength - i) << " || "
                         << computer_.GetFrameOptions().torchPaddingLength - i << " || "
-                        << i - 1 << endl;
-                    std::cout << wave.Get1D(wave.GetDim(0) - i) << " || " 
+                        << i << endl;
+                    std::cout << wave.Get1D(wave.GetDim(0) - i - 1) << " || " 
                         << temp.Get1D(temp.GetDim(0) - computer_.GetFrameOptions().torchPaddingLength + i - 1) << " || "
                         << temp.GetDim(0) - computer_.GetFrameOptions().torchPaddingLength + i - 1 << " || "
-                        << wave.GetDim(0) - i << endl;
+                        << wave.GetDim(0) - i - 1 << endl;
                     */
                 }
             }
@@ -370,7 +370,7 @@ namespace s2t {
         output->Resize(2, dimSize, X_FLOAT, 1.0);
         XTensor window;  // windowed waveform.
         bool use_raw_log_energy = computer_.NeedRawLogEnergy();
-        int startIndex = { 0 };
+        int startIndex[] = {0, 0};
         for (INT32 r = 0; r < rows_out; r++) {  // r is frame index.
             float raw_log_energy = 0.0;
             ExtractWindow(0, wave, r, computer_.GetFrameOptions(),
@@ -381,7 +381,7 @@ namespace s2t {
             int rowDimSize = { rows_out };
             output_row.Resize(1, &rowDimSize);
             computer_.Compute(raw_log_energy, vtln_warp, &window, output_row);
-            output->SetData(output_row.GetCell(&startIndex, 1), rows_out, r * cols_out);
+            output->SetData(output_row.GetCell(startIndex, 2), cols_out, r * cols_out);
         }
         XTensor temp = ReduceMax(ReduceMax(*output, 0), 0);
         float outputMax = temp.Get0D();

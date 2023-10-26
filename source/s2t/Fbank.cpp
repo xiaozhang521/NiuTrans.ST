@@ -28,6 +28,11 @@
 #include "../niutensor/tensor/core/reduce/ReduceSum.h"
 #include "../niutensor/tensor/core/arithmetic/Multiply.h"
 #include "../niutensor/tensor/core/math/Unary.h"
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
 using namespace nts;
 
 namespace s2t {
@@ -110,7 +115,7 @@ namespace s2t {
 
         const MelBanks& mel_banks = *(GetMelBanks(vtln_warp));
 
-        ASSERT(signal_frame->GetDim(0) == opts_.frame_opts.PaddedWindowSize() && feature.GetDim(0) == this->Dim());
+        ASSERT(signal_frame->GetDim(0) == opts_.frame_opts.PaddedWindowSize());
 
 
         // Compute energy after window function (not the raw one).
@@ -124,6 +129,7 @@ namespace s2t {
             std::vector<float> myOneSideFFTIn(reinterpret_cast<float*>(signal_frame->GetCell(&startIndex, 1)),
                 reinterpret_cast<float*>(signal_frame->GetCell(&startIndex, 1)) + signal_frame->GetDim(0));
             std::vector<std::complex<float>> mymyOneSideFFTOut = OneSidedFFT(myOneSideFFTIn);
+
         }
         else {
             if (srfft_ != NULL)  // Compute FFT using split-radix algorithm.
@@ -137,9 +143,10 @@ namespace s2t {
 
         // Convert the FFT into a power spectrum.
         ComputePowerSpectrum(signal_frame);
-        XTensor power_spectrum(signal_frame);
-        int dimSize = { signal_frame->GetDim(0) / 2 + 1 };
-        power_spectrum.SetDim(&dimSize);
+        XTensor power_spectrum;
+        power_spectrum.order = 2;
+        int dimSize[] = {signal_frame->GetDim(0) / 2 + 1 , 1};
+        power_spectrum.Resize(2, dimSize);
         int index = { 0 };
         power_spectrum.SetData(signal_frame->GetCell(&index, 1), signal_frame->GetDim(0) / 2 + 1, 0);
 
@@ -151,13 +158,65 @@ namespace s2t {
         INT32 mel_offset = ((opts_.use_energy && !opts_.htk_compat) ? 1 : 0);
         XTensor mel_energies(feature);
         // It's a tensor with two dim.
-        dimSize = { opts_.mel_opts.num_bins };
-        mel_energies.SetDim(&dimSize);
+        int melDimSize = { opts_.mel_opts.num_bins };
+        mel_energies.SetDim(&melDimSize);
         int startIndex = { 0 };
         mel_energies.SetData(feature.GetCell(&startIndex, 1), opts_.mel_opts.num_bins, mel_offset);
 
         // Sum with mel fiterbanks over the power spectrum
-        mel_banks.Compute(power_spectrum, &mel_energies);
+        if (opts_.mel_opts.num_bins == 80 && opts_.mel_opts.customFilter != ""){
+            XTensor filter;
+            filter.order = 2;
+            int filterDimSize[] = { opts_.mel_opts.num_bins , dimSize[0]};
+            filter.Resize(2, filterDimSize);
+            std::ifstream inputFile(opts_.mel_opts.customFilter);
+            ASSERT(inputFile.is_open());
+            std::vector<std::vector<std::string>> csvData;
+            std::string line;
+
+            while (std::getline(inputFile, line)) {
+                std::vector<std::string> row;
+                std::istringstream lineStream(line);
+                std::string cell;
+
+                while (std::getline(lineStream, cell, ',')) {
+                    row.push_back(cell);
+                }
+
+                csvData.push_back(row);
+            }
+
+            inputFile.close();
+            int rowCount = 0;
+
+            for (const auto& row : csvData) {
+                int column = 0;
+
+                for (const std::string& cell : row) {
+
+                    try {
+                        float value = std::stod(cell);
+                        filter.Set2D(value, rowCount, column);
+                        //std::cout << value << " ";
+                    }
+                    catch (const std::invalid_argument& e) {
+                        std::cerr << "Invalid number format: " << cell << std::endl;
+                    }
+                    column++;
+
+                }
+
+                std::cout << std::endl;
+                rowCount++;
+            }
+            mel_energies = MMul(filter, X_NOTRANS, power_spectrum, X_NOTRANS);
+            //mel_energies = filter.operator*(power_spectrum);
+
+        }
+        else{
+            mel_banks.Compute(power_spectrum, &mel_energies);
+        }
+        
         if (opts_.use_log_fbank) {
             // Avoid log of zero (which should be prevented anyway by dithering).
             ClipMe(mel_energies, std::numeric_limits<float>::epsilon(), FLT_MAX);
@@ -172,6 +231,7 @@ namespace s2t {
             INT32 energy_index = opts_.htk_compat ? opts_.mel_opts.num_bins : 0;
             feature.Set1D(signal_raw_log_energy, energy_index);
         }
+
         feature = mel_energies;
     }
 

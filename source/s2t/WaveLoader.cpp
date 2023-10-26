@@ -363,8 +363,8 @@ namespace s2t {
                 SWAP2(k);
 
             //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            double torchK = k / 33333.3333333333333333333333333333333333333333;
-            data_.Set1D(k, i);
+            double torchK = k / 32768.0;
+            data_.Set1D(torchK, i);
                 //data_[j, i] = k;
                 //data_(j, i) = k;
             //}

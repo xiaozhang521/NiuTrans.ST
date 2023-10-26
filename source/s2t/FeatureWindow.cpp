@@ -35,16 +35,20 @@ namespace s2t {
         const int dimSize[] = { frame_length };
         window.Resize(1, dimSize);
         double a = M_2PI / (frame_length - 1);
+        double b = M_2PI / frame_length;
         for (INT32 i = 0; i < frame_length; i++) {
             double i_fl = static_cast<double>(i);
-            if (opts.window_type == "hanning") {
+            if (opts.window_type == "hanning_periodic") {
+                if (!window.Set1D(0.5 - 0.5 * cos(b * i_fl), i)) {
+                    ASSERT(FALSE);
+                }
+            }
+            else if (opts.window_type == "hanning") {
                 if (!window.Set1D(0.5 - 0.5 * cos(a * i_fl), i)) {
                     ASSERT(FALSE);
                 }
             }
             else if (opts.window_type == "sine") {
-                // when you are checking ws wikipedia, please
-                // note that 0.5 * a = M_PI/(frame_length-1)
                 if (!window.Set1D(sin(0.5 * a * i_fl), i)) {
                     ASSERT(FALSE);
                 }
