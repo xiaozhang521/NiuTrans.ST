@@ -35,6 +35,7 @@ namespace s2t {
         float samp_freq;
         float frame_shift_ms;  // in milliseconds.
         float frame_length_ms;  // in milliseconds.
+        float chunkLength_ms; // max audio length.
         float dither;  // Amount of dithering, 0.0 means no dither.
         float preemph_coeff;  // Preemphasis coefficient.
         bool remove_dc_offset;  // Subtract mean of wave before FFT.
@@ -63,6 +64,8 @@ namespace s2t {
             torchPaddingLength = opts.torchPaddingLength;
             round_to_power_of_two = opts.round_to_power_of_two;
             padMod = opts.padMod;
+            chunkLength_ms = opts.chunkLength_ms;
+
         }
 
         FrameExtractionOptions() :
@@ -80,13 +83,17 @@ namespace s2t {
             allow_upsample(false),
             max_feature_vectors(-1),
             torchPaddingLength(200),
-            padMod("reflect")
+            padMod("reflect"),
+            chunkLength_ms(30000.0)
         { }
         INT32 WindowShift() const {
             return static_cast<INT32>(samp_freq * 0.001 * frame_shift_ms);
         }
         INT32 WindowSize() const {
             return static_cast<INT32>(samp_freq * 0.001 * frame_length_ms);
+        }
+        INT32 PaddedAudioSize() const {
+            return static_cast<INT32>(samp_freq * 0.001 * chunkLength_ms);
         }
         INT32 PaddedWindowSize() const {
             if (round_to_power_of_two) {
@@ -291,41 +298,53 @@ namespace s2t {
         XTensor* output) {
         ASSERT(output != NULL);
         float new_sample_freq = computer_.GetFrameOptions().samp_freq;
+        
+
+        struct FrameExtractionOptions opt;
+        INT32 paddedAudioSize = { opt.PaddedAudioSize() };
+        XTensor paddedWave;
+        XTensor torchPaddedWave;
+        int startIndex = { 0 };
+        if (paddedAudioSize <= 0) paddedAudioSize = wave.GetDim(0);
+
+        paddedWave.Resize(1, &paddedAudioSize);
+        paddedWave.SetData(wave.GetCell(&startIndex, 1), wave.GetDim(0), 0);
+
         if (computer_.GetFrameOptions().torchPaddingLength != 0) {
-            XTensor temp;
-            int paddingDimSize = { wave.GetDim(0) + computer_.GetFrameOptions().torchPaddingLength * 2 };
-            temp.Resize(1, &paddingDimSize);
-            int index = { 0 };
-            if (computer_.GetFrameOptions().padMod == "constant") {
-                temp.SetZeroAll();
-                temp.SetData(wave.GetCell(&index, 1), wave.GetDim(0), computer_.GetFrameOptions().torchPaddingLength);
-            }
-            else if (computer_.GetFrameOptions().padMod == "reflect") {
-                temp.SetData(wave.GetCell(&index, 1), wave.GetDim(0), computer_.GetFrameOptions().torchPaddingLength);
+            
+            int torchDimSize = { paddedAudioSize + computer_.GetFrameOptions().torchPaddingLength * 2 };
+            torchPaddedWave.Resize(1, &torchDimSize);
+            torchPaddedWave.SetZeroAll();
+            torchPaddedWave.SetData(paddedWave.GetCell(&startIndex, 1), paddedWave.GetDim(0), computer_.GetFrameOptions().torchPaddingLength);
+            
+            
+            if (computer_.GetFrameOptions().padMod == "reflect") {
                 for (int i = 0; i <= computer_.GetFrameOptions().torchPaddingLength; i++) {
-                    temp.Set1D(wave.Get1D(i), computer_.GetFrameOptions().torchPaddingLength - i);
-                    temp.Set1D(wave.Get1D(wave.GetDim(0) - i - 1), temp.GetDim(0) - computer_.GetFrameOptions().torchPaddingLength + i - 1);
+                    torchPaddedWave.Set1D(paddedWave.Get1D(i), computer_.GetFrameOptions().torchPaddingLength - i);
+                    torchPaddedWave.Set1D(paddedWave.Get1D(paddedWave.GetDim(0) - i - 1), torchPaddedWave.GetDim(0) - computer_.GetFrameOptions().torchPaddingLength + i - 1);
                     /*
-                    std::cout << wave.Get1D(i) << " || " 
-                        << temp.Get1D(computer_.GetFrameOptions().torchPaddingLength - i) << " || "
+                    std::cout << paddedWave.Get1D(i) << " || " 
+                        << torchPaddedWave.Get1D(computer_.GetFrameOptions().torchPaddingLength - i) << " || "
                         << computer_.GetFrameOptions().torchPaddingLength - i << " || "
                         << i << endl;
-                    std::cout << wave.Get1D(wave.GetDim(0) - i - 1) << " || " 
-                        << temp.Get1D(temp.GetDim(0) - computer_.GetFrameOptions().torchPaddingLength + i - 1) << " || "
-                        << temp.GetDim(0) - computer_.GetFrameOptions().torchPaddingLength + i - 1 << " || "
-                        << wave.GetDim(0) - i - 1 << endl;
+                    std::cout << paddedWave.Get1D(paddedWave.GetDim(0) - i - 1) << " || " 
+                        << torchPaddedWave.Get1D(torchPaddedWave.GetDim(0) - computer_.GetFrameOptions().torchPaddingLength + i - 1) << " || "
+                        << torchPaddedWave.GetDim(0) - computer_.GetFrameOptions().torchPaddingLength + i - 1 << " || "
+                        << paddedWave.GetDim(0) - i - 1 << endl;
                     */
                 }
             }
+            
+
             if(sample_freq == new_sample_freq) {
-                Compute(temp, vtln_warp, output);
+                Compute(torchPaddedWave, vtln_warp, output);
             }
             else {
                 ASSERT(FALSE);
             }
         }
         else if (sample_freq == new_sample_freq) {
-            Compute(wave, vtln_warp, output);
+            Compute(paddedWave, vtln_warp, output);
         }
         else {
             if (new_sample_freq < sample_freq &&
@@ -383,11 +402,13 @@ namespace s2t {
             computer_.Compute(raw_log_energy, vtln_warp, &window, output_row);
             output->SetData(output_row.GetCell(startIndex, 2), cols_out, r * cols_out);
         }
+        int newDimSize[] = { rows_out - 1 , cols_out };
+        output->SetDim(newDimSize);
         XTensor temp = ReduceMax(ReduceMax(*output, 0), 0);
         float outputMax = temp.Get0D();
         ClipMe(*output, outputMax - 8, outputMax);
-        ScaleAndShiftMe(*output, 1, 4);
-        ScaleAndShiftMe(*output, 1 / 4, 0);
+        ScaleAndShiftMe(*output, 1.0, 4.0);
+        ScaleAndShiftMe(*output, 0.25, 0.0);
     }
 
     template <class F>

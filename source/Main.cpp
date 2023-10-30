@@ -49,8 +49,10 @@ int main(int argc, const char** argv)
     class FbankComputer computer(fOpts);
     class OfflineFeatureTpl<FbankComputer> oft(computer);
     XTensor out;
-    
     oft.ComputeFeatures(data.Data(), data.SampFreq(), 1.0, &out);
+    FILE* outputFile = fopen("C:\\Code\\VS\\NiuTrans.ST\\output.txt", "w");
+    out.Dump(outputFile);
+    fclose(outputFile);
     return 0;
     //--------------------------Load Wave--------------------------
     //std::ios_base::sync_with_stdio(false);

@@ -218,9 +218,10 @@ namespace s2t {
         }
         
         if (opts_.use_log_fbank) {
+            
             // Avoid log of zero (which should be prevented anyway by dithering).
-            ClipMe(mel_energies, std::numeric_limits<float>::epsilon(), FLT_MAX);
-            LogMe(mel_energies);
+            ClipMe(mel_energies, 1e-10, FLT_MAX);
+            Log10Me(mel_energies);
         }
 
         // Copy energy as first value (or the last, if htk_compat == true).
