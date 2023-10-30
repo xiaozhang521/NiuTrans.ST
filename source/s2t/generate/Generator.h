@@ -85,6 +85,6 @@ namespace s2t
         //void DumpResToStdout();
     };
 
-} /* end of the nmt namespace */
+} /* end of the s2t namespace */
 
 #endif /*  */
