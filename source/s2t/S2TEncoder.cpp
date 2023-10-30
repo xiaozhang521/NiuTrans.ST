@@ -72,6 +72,7 @@ namespace s2t
 
         /* initialize the stacked layers */
         //embedder.InitModel(config);
+        embedder.MakePosEmbedding(posEmbeddingBase, config.model.encEmbDim, config.model.maxSrcLen, config.model.pad, config.common.devID);
 
         for (int i = 0; i < nlayer; i++) {
             ffns[i].InitModel(config, true);
@@ -79,5 +80,65 @@ namespace s2t
             attLayerNorms[i].InitModel(config, devID, embDim, config.model.encoderL1Norm);
             fnnLayerNorms[i].InitModel(config, devID, embDim, config.model.encoderL1Norm);
         }
+    }
+
+    XTensor S2TAttEncoder::RunFastPreNorm(XTensor& input, XTensor* mask)
+    {
+
+        XTensor x = input;
+        // FILE* encoderInput = fopen("../tools/data/encoderInput.bin", "rb");
+        // x.BinaryRead(encoderInput);
+
+        // conv
+        x = Transpose(x, 1, 2);
+        x = extractor->Make(x);
+        x = Transpose(x, 1, 2);
+
+        // FILE* convOutput = fopen("../tools/data/convOutput.bin", "wb");
+        // x.BinaryDump(convOutput);
+
+        XTensor posEmbedding = Unsqueeze(posEmbeddingBase, 0, x.GetDim(0));
+        SumMe(x, posEmbedding);
+
+        // FILE* posOutput = fopen("../tools/data/posOutput.bin", "wb");
+        // x.BinaryDump(posOutput);
+
+        for (int i = 0; i < nlayer; i++) {
+
+            XTensor xn;
+            
+            /* layer normalization with pre-norm for self-attn */
+            xn = attLayerNorms[i].Run(x);
+
+            /* self attention */
+            xn = selfAtts[i].Make(xn, xn, xn, mask, NULL, SELF_ATT);
+
+            /* residual connection */
+            SumMe(xn, x);
+
+            /* layer normalization with pre-norm for ffn */
+            x = fnnLayerNorms[i].Run(xn);
+
+            /* ffn */
+            x = ffns[i].Make(x);
+
+            /* residual connection */
+            SumMe(x, xn);
+
+            // break;
+
+        }
+
+        // FILE* blocksOutput = fopen("../tools/data/blocksOutput.bin", "wb");
+        // x.BinaryDump(blocksOutput);
+
+        // FILE* lnPostInput = fopen("../tools/data/lnPostInput.bin", "rb");
+        // x.BinaryRead(lnPostInput);
+
+        if (finalNorm) {
+            return encoderLayerNorm->Run(x); 
+        }
+
+        return x;
     }
 }

@@ -28,6 +28,7 @@
 #include "../nmt/submodel/Output.h"
 #include "../niutensor/train/XModel.h"
 using namespace nts;
+
   /* the s2t namespace */
 namespace s2t
 {
@@ -90,14 +91,13 @@ namespace s2t
     //        XTensor& maskEnc, XTensor& maskDec, XTensor& maskEncDec);
 
     //    /* make the mask of the encoder */
-    //    void MakeMTMaskEnc(XTensor& paddingEnc, XTensor& maskEnc);
-
-    //    /* make the mask of the decoder */
-    //    void MakeMTMaskDec(XTensor& paddingEnc, XTensor& paddingDec,
-    //        XTensor& maskDec, XTensor& maskEncDec);
+        void MakeS2TMaskEnc(XTensor& paddingEnc, XTensor& maskEnc);
 
     //    /* make the mask of the decoder for inference */
     //    XTensor MakeMTMaskDecInference(XTensor& paddingEnc);
+
+    //    /* make the lower triangle mask of the decoder for inference */
+        XTensor S2TModel::MakeS2TTriMaskDecInference(int batchSize = 1, int length = 1);
 
         /* get parameter matrices */
         void GetParams(TensorList& list);
@@ -121,6 +121,10 @@ namespace s2t
 
     //    /* run the neural network (overloaded method of XModel) */
     //    bool RunSimple(XList* inputs, XList* outputs, XList* golds, XList* losses);
+    
+    //
+        void TestDumpParams(XTensor* params);
+    
     };
 
 } /* end of the s2t namespace */

@@ -23,9 +23,10 @@
 #include "./nmt/Config.h"
 #include "./nmt/train/Trainer.h"
 #include "./nmt/translate/Translator.h"
-#include "./s2t/WaveLoader.h"
-#include "./s2t/FeatureWindow.h"
-#include "./s2t/Fbank.h"
+#include "./s2t/S2TModel.h"
+#include "./s2t/generate/Generator.h"
+#include "./s2t/S2TVocab.h"
+#include "niutensor/tensor/function/GELU.h"
 
 
 using namespace nmt;
@@ -58,23 +59,28 @@ int main(int argc, const char** argv)
     //std::ios_base::sync_with_stdio(false);
     //std::cin.tie(NULL);
 
-    //if (argc == 0)
-    //    return 1;
-    ///* load configurations */
-    //S2TConfig config(argc, argv);
-    //S2TModel model;
-    //model.InitModel(config);
+    if (argc == 0)
+        return 1;
+    /* load configurations */
+    S2TConfig config(argc, argv);
+    S2TModel model;
+    model.InitModel(config);
     //config.showConfig();
+
+    //model.TestDumpParams(&model.encoder->selfAtts[1].weightQ);
 
     //cout << "Tgt Vocab File: " << config.common.tgtVocabFN << endl;
     //S2TVocab vocab;
     //vocab.Load(config.common.tgtVocabFN);
-    //// vocab.ShowVocab();
+    // vocab.ShowVocab();
     //vocab.Test();
 
+    Generator generator;
+    generator.Init(config, model);
+    generator.Generate();
+    //generator.TestInference();
 
-    //Generator generator;
-    //generator.Init(config, model);
+
     //generator.generate(); 
     // 
     /*****************************Old entrance******************************/

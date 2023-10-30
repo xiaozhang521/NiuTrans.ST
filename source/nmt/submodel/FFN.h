@@ -33,6 +33,7 @@ using namespace nts;
 namespace nmt
 {
 
+
 /* a fnn: y = max(0, x * w1 + b1) * w2 + b2 */
 class FFN
 {
@@ -63,6 +64,9 @@ public:
 
     /* bias of transformation 2 */
     XTensor b2;
+
+    /* Activation function type */
+    int actFunType;
 
     /* dropout probability */
     DTYPE dropoutP;

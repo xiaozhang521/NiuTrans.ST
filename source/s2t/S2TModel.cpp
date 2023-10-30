@@ -59,6 +59,7 @@ namespace s2t
             &(config->model.decSelfAttHeadNum),
             &(config->model.encDecAttHeadNum),
             &(config->model.decFFNHiddenDim),
+            &(config->model.fnnActFunType),
         };
 
         return intConfig;
@@ -377,6 +378,8 @@ namespace s2t
         if (!config->model.shareDecInputOutputEmb) {
             list.Add(outputLayer->w);
         }
+
+        list.Add(&decoder->embedder->posEmbeddingBase);
     }
 
     void S2TModel::LoadFromFile(FILE* file)
@@ -428,7 +431,44 @@ namespace s2t
 
     }
 
+    void S2TModel::TestDumpParams(XTensor* params)
+    {
+        params->Dump(stderr, NULL, 5);
+    }
 
+    /*
+    make the mask of the encoder
+    >> paddingEnc - padding of the encoder input, (batchSize, srcLen)
+    >> maskEnc - mask of the encoder self-attention, (headNum, batchSize, srcLen, srcLen)
+    */
+    void S2TModel::MakeS2TMaskEnc(XTensor& paddingEnc, XTensor& maskEnc)
+    {
+        XTensor padding2;
+
+        /* mask of the padding */
+        Unsqueeze(paddingEnc, padding2, paddingEnc.order - 1, paddingEnc.GetDim(-1));
+        Unsqueeze(padding2, maskEnc, 0, config->model.encSelfAttHeadNum);
+        ScaleAndShiftMe(maskEnc, 1e9F, -1e9F);
+    }
+
+    XTensor S2TModel::MakeS2TTriMaskDecInference(int batchSize, int length)
+    {
+        /* encoder-decoder mask that prevents the attention to paded words */
+        XTensor maskEncDec;
+        InitTensor2D(&maskEncDec, length, length, X_FLOAT, devID);
+        _SetDataLowTri(&maskEncDec, 1.0, 0);
+        maskEncDec = Unsqueeze(maskEncDec, 0, batchSize);
+
+        if (config->model.encDecAttHeadNum > 1) {
+            maskEncDec = Unsqueeze(maskEncDec, 0, config->model.encDecAttHeadNum);
+            ScaleAndShiftMe(maskEncDec, 1e9F, -1e9F);
+            return maskEncDec;
+        }
+        else {
+            ScaleAndShiftMe(maskEncDec, 1e9F, -1e9F);
+            return maskEncDec;
+        }
+    }
 
 
 } /* end of the s2t namespace */

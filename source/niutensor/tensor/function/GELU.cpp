@@ -38,7 +38,7 @@ void _GELU(const XTensor * x, XTensor * y)
 
 #ifdef USE_CUDA
     if(x->devID >= 0 || y->devID >= 0){
-        //_CudaGELU(x, y);
+        _CudaGELU(x, y);
         return;
     }
 #endif

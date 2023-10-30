@@ -1,4 +1,4 @@
-﻿/* NiuTrans.NMT - an open-source neural machine translation system.
+/* NiuTrans.NMT - an open-source neural machine translation system.
  * Copyright (C) 2020 NiuTrans Research. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,6 +35,7 @@ Embedder::Embedder()
     fp16 = false;
     w = NULL;
     shareEncDecEmb = false;
+    scale = true;
     devID = -1;
     vSize = -1;
     eSize = -1;
@@ -82,6 +83,7 @@ void Embedder::InitModel(NMTConfig& config, bool isEnc)
     }
 
     /* create the positional embedding matrix */
+    /*TODO!!!*/
     MakePosEmbedding(maxLength);
 }
 
@@ -110,8 +112,42 @@ void Embedder::MakePosEmbedding(int length)
 
     /* padding zeros */
     int padStart = padIdx * eSize;
-    for (int i = padStart; i < padStart + eSize; i++)
-        data[i] = 0.F;
+    if (padStart > 0) {
+        for (int i = padStart; i < padStart + eSize; i++)
+            data[i] = 0.F;
+    }
+
+    posEmbeddingBase.SetData(data, posEmbeddingBase.unitNum);
+
+    delete[] data;
+}
+
+void Embedder::MakePosEmbedding(XTensor &posEmbeddingBase, int eSize, int length, int padIdx, int devID)
+{
+    InitTensor2D(&posEmbeddingBase, length, eSize, X_FLOAT, devID);
+
+    float* data = new float[posEmbeddingBase.unitNum];
+
+    for (int pos = 0; pos < length; pos++) {
+        float* dp = data + pos * eSize;
+
+        int channelSize = eSize / 2;
+        int offset = 0;
+        for (int i = 0; i < channelSize; i++) {
+            dp[offset++] = (float)sin(pos * exp(-i * log(10000.0F) / (channelSize - 1)));
+        }
+        for (int i = 0; i < channelSize; i++) {
+            dp[offset++] = (float)cos(pos * exp(-i * log(10000.0F) / (channelSize - 1)));
+        }
+    }
+
+    /* padding zeros */
+    if (padIdx >= 0 && padIdx < length)
+    {
+        int padStart = padIdx * eSize;
+        for (int i = padStart; i < padStart + eSize; i++)
+            data[i] = 0.F;
+    }
 
     posEmbeddingBase.SetData(data, posEmbeddingBase.unitNum);
 
@@ -154,10 +190,12 @@ XTensor Embedder::Make(XTensor& input, bool isDec, int nstep)
     /* then we make word embeddings */
     wordEmbedding = Gather(*w, input);
 
-    if (isTraining)
-        wordEmbedding = Linear(wordEmbedding, sqrtf((float)eSize), 0.0F, true);
-    else
-        ScaleMe(wordEmbedding, sqrtf((float)eSize));
+    if (scale) {
+        if (isTraining)
+            wordEmbedding = Linear(wordEmbedding, sqrtf((float)eSize), 0.0F, true);
+        else
+            ScaleMe(wordEmbedding, sqrtf((float)eSize));
+    }
 
     /* we sum over the two embeddings */
     SumMe(wordEmbedding, posEmbedding);

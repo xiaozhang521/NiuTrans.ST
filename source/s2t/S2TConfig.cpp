@@ -72,6 +72,8 @@ namespace s2t
         common.Load(argsNum, (const char **)args);
         training.Load(argsNum, (const char **)args);
         inference.Load(argsNum, (const char **)args);
+        whisperdec.Load(argsNum, (const char**)args);
+        // translation = (TranslationConfig)inference;
 
         showConfig();
 
@@ -143,7 +145,7 @@ namespace s2t
         cout << "\t| " << "decSelfAttHeadNum = " << model.decSelfAttHeadNum << endl;
         cout << "\t| " << "encDecAttHeadNum = " << model.encDecAttHeadNum << endl;
         cout << "\t| " << "decFFNHiddenDim = " << model.decFFNHiddenDim << endl;
-
+        cout << "\t| " << "fnnActFunType = " << model.fnnActFunType << endl;
 
 
 
@@ -175,6 +177,19 @@ namespace s2t
         Create(argsNum, args);
 
         LoadInt("fbank", &fbank, 80);
+
+    }
+
+    /* load whisper configuration from the command */
+    void WhisperDecConig::Load(int argsNum, const char** args) {
+        Create(argsNum, args);
+        LoadString("task", task, "transcribe");
+        LoadString("lang", language, "en");
+        LoadFloat("temperature", &temperature, 0.0);
+        LoadFloat("nospeechthreshold", &noSpeechThreshold, 0.6);
+        LoadFloat("logprobthreshold", &logProbThreshold, -1.0);
+        LoadFloat("compratiothreshold", &compRatioThreshold, 2.4);
+        LoadBool("notimeStamps", &withoutTimeStamps, FALSE);
 
     }
 

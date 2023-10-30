@@ -50,6 +50,9 @@ public:
     /* indicates whether train the model */
     bool isTraining;
 
+    /* indicates whether scale word embedding */
+    bool scale;
+
     /* device id */
     int devID;
 
@@ -87,6 +90,9 @@ public:
 
     /* make positional embeddings */
     void MakePosEmbedding(int length);
+
+    /* make positional embeddings */
+    static void MakePosEmbedding(XTensor &posEmbeddingBase, int eSize, int length, int padIdx, int devID);
 
     /* make the network */
     XTensor Make(XTensor& input, bool isDec, int nstep);

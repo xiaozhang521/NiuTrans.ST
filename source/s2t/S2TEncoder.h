@@ -34,6 +34,9 @@ public:
     /*Speech feature extractor*/
     Extractor* extractor;
 
+    /*Postion embedding matrix*/
+    XTensor posEmbeddingBase;
+
     /* constructor */
     S2TAttEncoder();
 
@@ -42,6 +45,9 @@ public:
 
     /* initialize the model */
     void InitModel(S2TConfig& config);
+
+    /* run encoding for inference with post-norm */
+    XTensor RunFastPreNorm(XTensor& input, XTensor* mask);
 };
 }
 #endif

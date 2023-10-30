@@ -1,4 +1,4 @@
-/* NiuTrans.NMT - an open-source neural machine translation system.
+/* NiuTrans.S2T - an open-source speech to text system.
  * Copyright (C) 2020 NiuTrans Research. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,135 +15,141 @@
  */
 
 /*
- * We define the class datasets for audio here.
- * every sub-datasets(e.g.,train, valid, etc.) of dataset should have a manifest
- * It will be overrided for inferrence, just for now.
- * 
  * $Created by: HE Erfeng (heerfeng1023@gmail.com) 2023-09
+ * $Modified by: Yuhao Zhang (yoohao.zhang) 2023-10-13
  */
 
-#ifndef __AUDIO_DATASET_H__
-#define __AUDIO_DATASET_H__
+#ifndef __S2T_DATASET_H__
+#define __S2T_DATASET_H__
 
-/* 
- * We may need a new config.h and a new namespace for ST
-*/
 
-#include "../nmt/Config.h"
+#include "S2TConfig.h"
 #include "../niutensor/train/XBaseTemplate.h"
+
 
 using namespace std;
 
 /* the nmt namespace */
-namespace nmt 
+namespace s2t 
 {
 
 /* 
- * the test sample (a pair of utterance and text which contains the results of ASR and NMT).
- * the result of NMT(tranlSeq) could be NULL.
+ * the test sample (a pair of speech, utterance and text which contains the results of ASR and ST).
+ * the result of ST(srcSeq) could be NULL.
 */
 
-	struct Sample
-	{
+struct TripleSample
+{
 
-		/* the index of the pair */
-		int index;
+	/* the index of the pair */
+	int index;
 
-		/* the key of buckets */
-		int bucketKey;
+	/* the key of buckets */
+	int bucketKey;
 
-		/* the sequence of audio (a list of tokens) */
-		IntList* audioSeq;
+	/* the frame length for every speech */
+	int fLen;
 
-		/* the sequence of target sentence (a list of tokens) */
-		IntList* tgtSeq;
+	/* the sequence of audio (a list of frames) */
+	/* currently saved as a tensor, length * channels */
+	/* storing with XTensor use casue memory problem */
+	XTensor* audioSeq;
 
-		/* the sequence of translated sentence (a list of tokens) */
-		IntList* translSeq;
+	/* the path to sequence of audio (a list of frames) */
+	string audioPath;
 
-		/* constructor */
-		Sample(IntList* a, IntList* tg, IntList* tr = NULL, int myKey = -1);
+	/* the sequence of source sentence (a list of tokens) */
+	IntList* srcSeq;
 
-		/* de-constructor */
-		~Sample();
-	};
+	/* the sequence of target sentence (a list of tokens) */
+	IntList* tgtSeq;
 
-	/* the base class of datasets used in Niutrans.ST*/
-	class AudioDataSetBase : public DataDistributeBase
-	{
-	public:
-		/* frame counter, decided on duration */
-		int frameCounter;
+	/* constructor */
+	TripleSample(XTensor* a, IntList* s = NULL, IntList* t = NULL, int myKey = -1);
 
-		/* the number of target sequences */
-		int tgtCounter;
+	/* constructor */
+	TripleSample(string p, int f, IntList* s = NULL, IntList* t = NULL, int myKey = -1);
 
-		/* the number of translated sequences*/
-		int translCounter;
+	/* de-constructor */
+	~TripleSample();
+};
 
-		/* the buffer of sequences */
-		XList* seqBuf;
+/* the base class of datasets used in Niutrans.ST */
+class S2TDataSetBase : public DataDistributeBase
+{
+public:
+	/* frame-counter*/
+	int fc;
 
-		/* the buffer of audio */
-		XList* audioBuf;
+	/* word-counter */
+	int wc;
 
-		/*the configuration of ST system*/
-		NMTConfig* config; //We will change it to STConfig in furture
+	/* sentence-counter */
+	int sc;
 
-	public:
-		/* get the maximum audio sentence length in a range of buffer */
-		int MaxAudioLen(int begin, int end);
+	/* current index of the buffer */
+	int bufIdx;
 
-		/* get the maximum target sentence length in a range of buffer */
-		int MaxTgtLen(int begin, int end);
+	/* the buffer of sequences */
+	XList* buf;
 
-		/* get the maximum translated sentence length in a range of buffer */
-		int MaxTranslLen(int begin, int end);
+	/*the configuration of ST system*/
+	S2TConfig* config; 
 
-		/* sort the input by audio sentence length (in ascending order) */
-		void SortByAudioLengthAscending();
+public:
+	/* get the maximum audio sentence length in a range of buffer */
+	int MaxAudioLen(int begin, int end);
 
-		/* sort the input by target sentence length (in ascending order) */
-		void SortByTgtLengthAscending();
+	/* get the maximum target sentence length in a range of buffer */
+	int MaxTgtLen(int begin, int end);
 
-		/* sort the input by translated sentence length (in ascending order) */
-		void SortByTranslLengthAscending();
+	/* get the maximum translated sentence length in a range of buffer */
+	int MaxSrcLen(int begin, int end);
 
-		/* sort the input by audio sentence length (in descending order) */
-		void SortByAudioLengthDescending();
+	/* sort the input by audio sentence length (in ascending order) */
+	void SortByAudioLengthAscending();
 
-		/* sort the input by target sentence length (in descending order) */
-		void SortByTgtLengthDescending();
+	/* sort the input by target sentence length (in ascending order) */
+	void SortByTgtLengthAscending();
 
-		/* sort the input by translated sentence length (in descending order) */
-		void SortByTranslLengthDescending();
+	/* sort the input by translated sentence length (in ascending order) */
+	void SortBySrcLengthAscending();
 
-		/* release the samples in a buffer */
-		void ClearBuf();
+	/* sort the input by audio sentence length (in descending order) */
+	void SortByAudioLengthDescending();
 
-	public:
-		/* constructor */
-		AudioDataSetBase();
+	/* sort the input by target sentence length (in descending order) */
+	void SortByTgtLengthDescending();
 
-		/* load the samples into the buffer (a list) */
-		virtual
-			bool LoadBatchToBuf() = 0;
+	/* sort the input by translated sentence length (in descending order) */
+	void SortBySrcLengthDescending();
 
-		/* initialization function */
-		virtual
-			void Init(NMTConfig& myConfig, bool isTraining) = 0;
+	/* release the samples in a buffer */
+	void ClearBuf();
 
-		/* load a sample from the file stream  */
-		virtual
-			Sample* LoadSample() = 0;
+public:
+	/* constructor */
+	S2TDataSetBase();
 
-		/* load a mini-batch from the buffer */
-		virtual
-			bool GetBatchSimple(XList* inputs, XList* golds = NULL) = 0;
+	/* load the samples into the buffer (a list) */
+	virtual
+	bool LoadBatchToBuf() = 0;
 
-		/* de-constructor */
-		~AudioDataSetBase();
-	};
+	/* initialization function */
+	virtual
+	void Init(S2TConfig& myConfig, bool isTraining) = 0;
 
-} /* end of nmt namespace */
-#endif /* __AUDIO_DATASET_H__ */
+	/* load a sample from the file stream  */
+	virtual
+	TripleSample* LoadSample() = 0;
+
+	/* load a mini-batch from the buffer */
+	virtual
+	bool GetBatchSimple(XList* inputs, XList* golds = NULL) = 0;
+
+	/* de-constructor */
+	~S2TDataSetBase();
+};
+
+} /* end of s2t namespace */
+#endif /* __S2T_DATASET_H__ */

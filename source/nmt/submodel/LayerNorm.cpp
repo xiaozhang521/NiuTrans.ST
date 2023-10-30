@@ -118,12 +118,12 @@ XTensor LayerNorm::RunL2Norm(XTensor& input)
 
     /* call the fused function for faster inference */
     if (!weight.enableGrad)
-        return Normalize(x, x.order - 1, mean, variance, weight, bias, 0.0F);
+        return Normalize(x, x.order - 1, mean, variance, weight, bias, 1e-5F);
 
     /* TODO: add the backward function for Normalize */
 
     /* standard = sqrt(variance) */
-    standard = Power(variance, 0.5F);
+    standard = Power(variance + 1e-5F, 0.5F);
 
     /* unsqueeze mean and standard deviation to fit them into
        the same shape of x */

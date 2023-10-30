@@ -28,7 +28,8 @@
 
 #include "../S2TModel.h"
 #include "../../nmt/translate/Searcher.h"
-//#include "GenerateDataSet.h"
+#include "S2TSearcher.h"
+#include "S2TGeneratorDataSet.h"
 
  /* the s2t namespace */
 namespace s2t
@@ -36,25 +37,28 @@ namespace s2t
 
     class Generator
     {
-    //private:
-        /* translate a batch of sequences */
-        //void TranslateBatch(XTensor& batchEnc, XTensor& paddingEnc, IntList& indices);
 
     private:
         /* the translation model */
         S2TModel* model;
 
         /* for batching */
-        //GenerateDataset batchLoader;
+        S2TGeneratorDataset batchLoader;
 
         /* the searcher for translation */
         void* seacher;
 
         /* configuration of the NMT system */
-        //S2TConfig* config;
+        S2TConfig* config;
 
         /* output buffer */
         XList* outputBuf;
+
+    private:
+        /* translate a batch of sequences */
+        XTensor DecodingBatch(XTensor& batchEnc, XTensor& paddingEnc, IntList& indices);
+
+
 
     public:
         /* constructor */
@@ -64,10 +68,12 @@ namespace s2t
         ~Generator();
 
         ///* initialize the translator */
-        //void Init(S2TConfig& myConfig, S2TModel& myModel);
+        void Init(S2TConfig& myConfig, S2TModel& myModel);
 
-        ///* the translation function */
-        //bool Translate();
+        /* the generate function */
+        bool Generate();
+
+        bool TestInference();
 
         ///* sort the outputs by the indices (in ascending order) */
         //void SortOutputs();
@@ -79,6 +85,6 @@ namespace s2t
         //void DumpResToStdout();
     };
 
-} /* end of the nmt namespace */
+} /* end of the s2t namespace */
 
 #endif /*  */

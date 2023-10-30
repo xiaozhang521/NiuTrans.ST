@@ -55,6 +55,26 @@ namespace s2t
         void Load(int argsNum, const char** args);
     };
 
+    /* whisper decoding configuration */
+    class WhisperDecConig : XConfig
+    {
+        /*TODO*/
+    public:
+
+        char task[MAX_NAME_LEN];
+        char language[MAX_NAME_LEN];     // zh
+        float temperature;
+        float noSpeechThreshold;
+        float logProbThreshold;
+        float compRatioThreshold;
+        bool withoutTimeStamps;
+
+    public:
+        /* load configuration from the command */
+        void Load(int argsNum, const char** args);
+
+    };
+
     /* inference configuration */
     class InferenceConfig : public TranslationConfig
     {
@@ -78,6 +98,8 @@ namespace s2t
 
         /* inference configuration */
         InferenceConfig inference;
+        /* whisper decoding configuration */
+        WhisperDecConig whisperdec;
 
     public:
         /* load configuration from the command */
