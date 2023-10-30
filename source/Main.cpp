@@ -60,10 +60,10 @@ int main(int argc, const char** argv)
     fclose(outputFile);
     return 0;
     //--------------------------Load Wave--------------------------
-
+    /*
     if (argc == 0)
         return 1;
-    /* load configurations */
+    // load configurations 
     S2TConfig config(argc, argv);
     S2TModel model;
     model.InitModel(config);
@@ -71,5 +71,5 @@ int main(int argc, const char** argv)
     Generator generator;
     generator.Init(config, model);
     generator.Generate();
-    
+    */
 }
