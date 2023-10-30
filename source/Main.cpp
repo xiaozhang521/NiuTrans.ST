@@ -28,6 +28,10 @@
 #include "./s2t/S2TVocab.h"
 #include "niutensor/tensor/function/GELU.h"
 
+#include "./s2t/WaveLoader.h"
+#include "./s2t/FeatureWindow.h"
+#include "./s2t/Fbank.h"
+
 
 using namespace nmt;
 using namespace s2t;
