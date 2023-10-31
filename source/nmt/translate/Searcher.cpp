@@ -73,6 +73,18 @@ void BeamSearch::Init(NMTConfig& config)
         endSymbolNum = 1;
 }
 
+void BeamSearch::Init(const int* tokens, const int tokenNum, const int start, const int len,
+    const int beam, const int batch, const float a, const float scale) 
+{
+    SetEnd(tokens, tokenNum);
+    startSymbol = start;
+    maxLen = len;
+    beamSize = beam;
+    batchSize = batch;
+    alpha = a;
+    scalarMaxLength = scale;
+}
+
 /*
 prepare for search
 >> batchSize - size of the batch
@@ -611,7 +623,7 @@ void BeamSearch::SetEnd(const int* tokens, const int tokenNum)
         return;
 
     /* we may have multiple end symbols */
-    tokens = new int[tokenNum];
+    endSymbols = new int[tokenNum];
     for (int i = 0; i < tokenNum; i++)
         endSymbols[i] = tokens[i];
     endSymbolNum = tokenNum;

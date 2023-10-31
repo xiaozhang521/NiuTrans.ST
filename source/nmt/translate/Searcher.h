@@ -91,6 +91,10 @@ public:
     /* initialize the model */
     void Init(NMTConfig& config);
 
+    /* initialize the model */
+    void Init(const int* tokens, const int tokenNum, const int start, const int len,
+        const int beam, const int batch, const float a, const float scale);
+
     /* search for the most promising states */
     void Search(NMTModel* model, XTensor& input, XTensor& padding, IntList** output, XTensor& score);
 
