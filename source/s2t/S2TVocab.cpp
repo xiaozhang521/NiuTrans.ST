@@ -139,40 +139,4 @@ void S2TVocab::Test()
     //StringToUtf8(testSentence);
 }
 
-wstring S2TVocab::Utf8ToString(const std::vector<unsigned char>& utf8Bytes)
-{
-    std::wstring result;
-    for (size_t i = 0; i < utf8Bytes.size();) {
-        wchar_t unicodeChar;
-        unsigned char currentByte = utf8Bytes[i++];
-
-        if (currentByte <= 0x7F) {
-            unicodeChar = static_cast<wchar_t>(currentByte);
-        }
-        else if (currentByte <= 0xDF) {
-            unicodeChar = static_cast<wchar_t>(currentByte & 0x1F);
-            unicodeChar <<= 6;
-            unicodeChar |= static_cast<wchar_t>(utf8Bytes[i++] & 0x3F);
-        }
-        else if (currentByte <= 0xEF) {
-            unicodeChar = static_cast<wchar_t>(currentByte & 0x0F);
-            unicodeChar <<= 12;
-            unicodeChar |= static_cast<wchar_t>((utf8Bytes[i++] & 0x3F) << 6);
-            unicodeChar |= static_cast<wchar_t>(utf8Bytes[i++] & 0x3F);
-        }
-        else if (currentByte <= 0xF7) {
-            unicodeChar = static_cast<wchar_t>(currentByte & 0x07);
-            unicodeChar <<= 18;
-            unicodeChar |= static_cast<wchar_t>((utf8Bytes[i++] & 0x3F) << 12);
-            unicodeChar |= static_cast<wchar_t>((utf8Bytes[i++] & 0x3F) << 6);
-            unicodeChar |= static_cast<wchar_t>(utf8Bytes[i++] & 0x3F);
-        }
-        else {
-            unicodeChar = L'?';
-        }
-        result.push_back(unicodeChar);
-    }
-    return result;
-}
-
 } /* end of the s2t namespace */
