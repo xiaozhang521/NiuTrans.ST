@@ -224,7 +224,7 @@ namespace s2t {
 		maskDec = model->MakeS2TTriMaskDecInference(batchSize, inputDec.GetDim(-1));
 		// maskDec.Dump(stderr, "maskEncDec: ", -1);
 
-		model->decoder->embedder->scale = FALSE;
+		model->decoder->embedder->scale = false;
 		
 		for (int l = 0; l < lengthLimit; l++) {
 
@@ -249,7 +249,7 @@ namespace s2t {
 
 			/* generate the output probabilities */
 			/*TODO*/
-			bool outputSoftmax = FALSE;
+			bool outputSoftmax = false;
 			if (outputSoftmax)
 				prob = model->outputLayer->Make(decoding, false);
 			else
@@ -596,7 +596,7 @@ namespace s2t {
 		InitTensor1D(&reorderState, batchSize * beamSize, X_INT, input.devID);
 		SetAscendingOrder(reorderState, 0);
 
-		model->decoder->embedder->scale = FALSE;
+		model->decoder->embedder->scale = false;
 
 		/* generate the sequence from left to right */
 		// lengthLimit = 1;
@@ -816,7 +816,7 @@ namespace s2t {
 		CheckNTErrors(decoding.order >= 2, "The tensor must be of order 2 or larger!");
 
 		/* generate the output probabilities */
-		bool outputSoftmax = FALSE;
+		bool outputSoftmax = false;
 		if (outputSoftmax)
 			output = m->outputLayer->Make(decoding, false);
 		else
