@@ -22,7 +22,6 @@
 #include <fstream>
 #include <iostream>
 #include <locale>
-#include <codecvt>
 #include "S2TVocab.h"
 #include "./S2TConfig.h"
 
@@ -174,25 +173,6 @@ wstring S2TVocab::Utf8ToString(const std::vector<unsigned char>& utf8Bytes)
         result.push_back(unicodeChar);
     }
     return result;
-}
-
-wstring S2TVocab::Utf8ToString(const string& utf8Bytes)
-{
-    cout << "Utf-8 String: " << utf8Bytes << endl;
-    wstring_convert<codecvt_utf8<wchar_t>> converter;
-    wstring wideString = converter.from_bytes(utf8Bytes);
-    wcout << "Wide String: " << wideString << endl;
-    return wideString;
-}
-
-string S2TVocab::StringToUtf8(const string& String)
-{
-    cout << "Origin String: " << String << endl;
-    wstring_convert< codecvt_utf8<wchar_t> > converter;
-    wstring wideString = converter.from_bytes(String);
-    string utf8Bytes = converter.to_bytes(wideString);
-    cout << "Utf-8 String: " << utf8Bytes << endl;
-    return utf8Bytes;
 }
 
 } /* end of the s2t namespace */
