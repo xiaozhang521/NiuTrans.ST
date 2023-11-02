@@ -46,11 +46,12 @@ namespace s2t
     }
 
     /* initialize the model */
-    void Generator::Init(S2TConfig& myConfig, S2TModel& myModel)
+    void Generator::Init(S2TConfig& myConfig, S2TModel& myModel, OfflineFeatureTpl<FbankComputer>& myOft)
     {
         cout << "----- Generator Init -----" << endl;
         model = &myModel;
         config = &myConfig;
+        oft = &myOft;
 
         if (config->inference.beamSize > 1) {
             LOG("Inferencing with beam search (beam=%d, batchSize= %d sents | %d tokens, lenAlpha=%.2f, maxLenAlpha=%.2f) ",
@@ -117,10 +118,16 @@ namespace s2t
 
     bool Generator::Generate()
     {
-        batchLoader.Init(*config, false);
-        
+
         /* inputs */
         XTensor batchEnc;
+
+        oft->Read();
+        oft->ComputeFeatures(oft->Data().Data(), oft->Data().SampFreq(), 1.0, &batchEnc);
+        batchEnc = Transpose(batchEnc, 0, 1);
+
+        batchLoader.Init(*config, false);
+
         XTensor paddingEnc;
 
         /* sentence information */

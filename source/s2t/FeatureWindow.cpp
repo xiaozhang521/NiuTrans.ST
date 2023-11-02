@@ -38,39 +38,39 @@ namespace s2t {
         double b = M_2PI / frame_length;
         for (INT32 i = 0; i < frame_length; i++) {
             double i_fl = static_cast<double>(i);
-            if (opts.window_type == "hanning_periodic") {
+            if (strcmp(opts.windowType, "hanning_periodic") == 0) {
                 if (!window.Set1D(0.5 - 0.5 * cos(b * i_fl), i)) {
                     ASSERT(FALSE);
                 }
             }
-            else if (opts.window_type == "hanning") {
+            else if (strcmp(opts.windowType, "hanning") == 0) {
                 if (!window.Set1D(0.5 - 0.5 * cos(a * i_fl), i)) {
                     ASSERT(FALSE);
                 }
             }
-            else if (opts.window_type == "sine") {
+            else if (strcmp(opts.windowType, "sine") == 0) {
                 if (!window.Set1D(sin(0.5 * a * i_fl), i)) {
                     ASSERT(FALSE);
                 }
             }
-            else if (opts.window_type == "hamming") {
+            else if (strcmp(opts.windowType, "hamming") == 0) {
                 if (!window.Set1D(0.54 - 0.46 * cos(a * i_fl), i)) {
                     ASSERT(FALSE);
                 }
             }
-            else if (opts.window_type == "povey") {  // like hamming but goes to zero at edges.
+            else if (strcmp(opts.windowType, "povey") == 0) {  // like hamming but goes to zero at edges.
                 if (!window.Set1D(pow(0.5 - 0.5 * cos(a * i_fl), 0.85), i)) {
                     ASSERT(FALSE);
                 }
             }
-            else if (opts.window_type == "rectangular") {
+            else if (strcmp(opts.windowType, "rectangular") == 0) {
                 if (!window.Set1D(1.0, i)) {
                     ASSERT(FALSE);
                 }
             }
-            else if (opts.window_type == "blackman") {
-                if (!window.Set1D(opts.blackman_coeff - 0.5 * cos(a * i_fl) +
-                    (0.5 - opts.blackman_coeff) * cos(2 * a * i_fl), i)) {
+            else if (strcmp(opts.windowType, "blackman") == 0) {
+                if (!window.Set1D(opts.blackmanCoeff - 0.5 * cos(a * i_fl) +
+                    (0.5 - opts.blackmanCoeff) * cos(2 * a * i_fl), i)) {
                     ASSERT(FALSE);
                 }
             }
@@ -83,7 +83,7 @@ namespace s2t {
     INT64 FirstSampleOfFrame(INT32 frame,
         const FrameExtractionOptions& opts) {
         INT64 frame_shift = opts.WindowShift();
-        if (opts.snip_edges) {
+        if (opts.snipEdges) {
             return frame * frame_shift;
         }
         else {
@@ -106,12 +106,12 @@ namespace s2t {
     }
 
 
-    void Preemphasize(XTensor* waveform, float preemph_coeff) {
-        if (preemph_coeff == 0.0) return;
-        ASSERT(preemph_coeff >= 0.0 && preemph_coeff <= 1.0);
+    void Preemphasize(XTensor* waveform, float preemphCoeff) {
+        if (preemphCoeff == 0.0) return;
+        ASSERT(preemphCoeff >= 0.0 && preemphCoeff <= 1.0);
         for (INT32 i = waveform->GetDim(0) - 1; i > 0; i--)
-            waveform->Set1D(waveform->Get1D(i) - preemph_coeff * waveform->Get1D(i - 1), i);
-        waveform->Set1D(waveform->Get1D(0) - preemph_coeff * waveform->Get1D(0), 0);
+            waveform->Set1D(waveform->Get1D(i) - preemphCoeff * waveform->Get1D(i - 1), i);
+        waveform->Set1D(waveform->Get1D(0) - preemphCoeff * waveform->Get1D(0), 0);
     }
 
     INT32 NumFrames(INT64 num_samples,
@@ -119,7 +119,7 @@ namespace s2t {
         bool flush) {
         INT64 frame_shift = opts.WindowShift();
         INT64 frame_length = opts.WindowSize();
-        if (opts.snip_edges) {
+        if (opts.snipEdges) {
             // with --snip-edges=true (the default), we use a HTK-like approach to
             // determining the number of frames-- all frames have to fit completely into
             // the waveform, and the first frame begins at sample zero.
@@ -172,7 +172,7 @@ namespace s2t {
         if (opts.dither != 0.0)
             Dither(&window, opts.dither);
 
-        if (opts.remove_dc_offset) {
+        if (opts.removeDcOffset) {
             XTensor temp(ReduceSum(window, 0));
             //temp = ReduceSum(window, 1);
             double dcOffset = temp.Get0D() / frame_length;
@@ -189,8 +189,8 @@ namespace s2t {
             *log_energy_pre_window = logf(energy);
         }
 
-        if (opts.preemph_coeff != 0.0)
-            Preemphasize(&window, opts.preemph_coeff);
+        if (opts.preemphCoeff != 0.0)
+            Preemphasize(&window, opts.preemphCoeff);
 
         window = window.operator*(window_function.window);
     }
@@ -213,7 +213,7 @@ namespace s2t {
             start_sample = FirstSampleOfFrame(f, opts),
             end_sample = start_sample + frame_length;
 
-        if (opts.snip_edges) {
+        if (opts.snipEdges) {
             ASSERT(start_sample >= sample_offset &&
                 end_sample <= num_samples);
         }

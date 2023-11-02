@@ -1,0 +1,11 @@
+-fbank 80
+-bigatt false
+-dev 0
+-beam 3
+-model ../whisper_tiny_niutrans_s2t.bin
+-tgtvocab ../vocab_whisper_utf
+-input ../test.tsv
+-output ../output.txt
+-maxlen 224
+-inputAudio ../test.wav
+

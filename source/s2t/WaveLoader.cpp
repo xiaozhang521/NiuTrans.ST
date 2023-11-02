@@ -170,7 +170,7 @@ namespace s2t {
             byte_rate = reader.ReadUint32(),
             block_align = reader.ReadUint16(),
             bits_per_sample = reader.ReadUint16();
-        samp_freq_ = static_cast<float>(sample_rate);
+        sampFreq_ = static_cast<float>(sample_rate);
 
         UINT32 fmt_chunk_read = 16;
         if (audio_format == 1) {
@@ -294,7 +294,7 @@ namespace s2t {
         data_.Resize(2, dimSize, X_FLOAT, 1.0);  // clear the data.
         delete[] dimSize;
         data_.SetZeroAll();
-        samp_freq_ = header.SampFreq();
+        sampFreq_ = header.SampFreq();
 
         XTensor buffer, temp;
         UINT32 bytes_to_go = header.IsStreamed() ? kBlockSize : header.DataBytes();
@@ -396,9 +396,9 @@ namespace s2t {
         WriteUint32(os, 16);
         WriteUint16(os, 1);
         WriteUint16(os, num_chan);
-        ASSERT(samp_freq_ > 0);
-        WriteUint32(os, static_cast<INT32>(samp_freq_));
-        WriteUint32(os, static_cast<INT32>(samp_freq_) * num_chan * bytes_per_samp);
+        ASSERT(sampFreq_ > 0);
+        WriteUint32(os, static_cast<INT32>(sampFreq_));
+        WriteUint32(os, static_cast<INT32>(sampFreq_) * num_chan * bytes_per_samp);
         WriteUint16(os, num_chan * bytes_per_samp);
         WriteUint16(os, 8 * bytes_per_samp);
         os << "data";

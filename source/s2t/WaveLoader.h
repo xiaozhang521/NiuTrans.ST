@@ -31,20 +31,20 @@ namespace s2t {
 
 	class WaveInfo {
 	public:
-		WaveInfo() : samp_freq_(0), samp_count_(0),
+		WaveInfo() : sampFreq_(0), samp_count_(0),
 			num_channels_(0), reverse_bytes_(0) {}
 
 		/// Is stream size unknown? Duration and SampleCount not valid if true.
 		bool IsStreamed() const { return samp_count_ < 0; }
 
 		/// Sample frequency, Hz.
-		float SampFreq() const { return samp_freq_; }
+		float SampFreq() const { return sampFreq_; }
 
 		/// Number of samples in stream. Invalid if IsStreamed() is true.
 		UINT32 SampleCount() const { return samp_count_; }
 
 		/// Approximate duration, seconds. Invalid if IsStreamed() is true.
-		float Duration() const { return samp_count_ / samp_freq_; }
+		float Duration() const { return samp_count_ / sampFreq_; }
 
 		/// Number of channels, 1 to 16.
 		INT32 NumChannels() const { return num_channels_; }
@@ -63,7 +63,7 @@ namespace s2t {
 		void Read(std::istream& is);
 
 	private:
-		float samp_freq_;
+		float sampFreq_;
 		int samp_count_;     // 0 if empty, -1 if undefined length.
 		UINT num_channels_;
 		bool reverse_bytes_;   // File endianness differs from host.
@@ -72,10 +72,10 @@ namespace s2t {
 	// This class's purpose is to read in Wave files.
 	class WaveData {
 	public:
-		WaveData(float samp_freq, const XTensor& data)
-			: data_(data), samp_freq_(samp_freq) {}
+		WaveData(float sampFreq, const XTensor& data)
+			: data_(data), sampFreq_(sampFreq) {}
 
-		WaveData() : samp_freq_(0.0) {}
+		WaveData() : sampFreq_(0.0) {}
 
 		/// Read() will throw on error.  It's valid to call Read() more than once--
 		/// in this case it will destroy what was there before.
@@ -90,19 +90,19 @@ namespace s2t {
 		// there's just one channel so Data() will have one row.
 		const XTensor & Data() const { return data_; }
 
-		float SampFreq() const { return samp_freq_; }
+		float SampFreq() const { return sampFreq_; }
 
 		// Returns the duration in seconds
-		float Duration() const { return data_.GetDim(1) / samp_freq_; }
+		float Duration() const { return data_.GetDim(1) / sampFreq_; }
 
 		void CopyFrom(const WaveData& other) {
-			samp_freq_ = other.samp_freq_;
+			sampFreq_ = other.sampFreq_;
 			data_.Resize(&other.data_);
 		}
 
 		void Clear() {
 			data_.Resize(0, 0);
-			samp_freq_ = 0.0;
+			sampFreq_ = 0.0;
 		}
 
 		void Swap(WaveData* other) {
@@ -110,13 +110,13 @@ namespace s2t {
 			data_ = other->data_;
 			other->data_ = temp;
 			//data_.Swap(&(other->data_));
-			std::swap(samp_freq_, other->samp_freq_);
+			std::swap(sampFreq_, other->sampFreq_);
 		}
 
 	private:
 		static const UINT32 kBlockSize = 1024 * 1024;  // Use 1M bytes.
 		XTensor data_;
-		float samp_freq_;
+		float sampFreq_;
 	};
 
 }

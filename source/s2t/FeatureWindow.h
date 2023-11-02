@@ -25,78 +25,78 @@
 #include <map>
 #include <string>
 #include <stdint.h>
+#include "WaveLoader.h"
 #include "utils.h"
+#include "S2TConfig.h"
 #include "../niuTensor/tensor/core/CHeader.h"
 using namespace nts;
 
 
 namespace s2t {
     struct FrameExtractionOptions {
-        float samp_freq;
-        float frame_shift_ms;  // in milliseconds.
-        float frame_length_ms;  // in milliseconds.
-        float chunkLength_ms; // max audio length.
+        float sampFreq;
+        float frameShiftMs;  // in milliseconds.
+        float frameLengthMs;  // in milliseconds.
+        float chunkLengthMs; // max audio length.
         float dither;  // Amount of dithering, 0.0 means no dither.
-        float preemph_coeff;  // Preemphasis coefficient.
-        bool remove_dc_offset;  // Subtract mean of wave before FFT.
-        std::string window_type;  // e.g. Hamming window
-        // May be "hamming", "rectangular", "povey", "hanning", "sine", "blackman"
-        // "povey" is a window I made to be similar to Hamming but to go to zero at the
-        // edges, it's pow((0.5 - 0.5*cos(n/N*2*pi)), 0.85)
-        // I just don't think the Hamming window makes sense as a windowing function.
-        bool round_to_power_of_two;
-        float blackman_coeff;
-        bool snip_edges;
-        bool allow_downsample;
-        bool allow_upsample;
-        int max_feature_vectors;
+        float preemphCoeff;  // Preemphasis coefficient.
+        bool removeDcOffset;  // Subtract mean of wave before FFT.
+        char windowType[MAX_NAME_LEN];  // May be "hamming", "rectangular", "povey", "hanning", "sine", "blackman"
+        bool roundToPowerOfTwo;
+        float blackmanCoeff;
+        bool snipEdges;
+        bool allowDownsample;
+        bool allowUpsample;
+        int maxFeatureVectors;
         int torchPaddingLength; // In default, it will be half of frame length.
-        std::string padMod;
+        char padMod[MAX_NAME_LEN];
+        char inputAudio[MAX_NAME_LEN];
         FrameExtractionOptions(const FrameExtractionOptions& opts ) {
-            samp_freq = opts.samp_freq;
-            frame_shift_ms = opts.frame_shift_ms;
-            frame_length_ms = opts.frame_length_ms;
+            sampFreq = opts.sampFreq;
+            frameShiftMs = opts.frameShiftMs;
+            frameLengthMs = opts.frameLengthMs;
             dither = opts.dither;
-            preemph_coeff = opts.preemph_coeff;
-            remove_dc_offset = opts.remove_dc_offset;
-            window_type = opts.window_type;
-            snip_edges = opts.snip_edges;
+            preemphCoeff = opts.preemphCoeff;
+            removeDcOffset = opts.removeDcOffset;
+            *windowType = *opts.windowType;
+            snipEdges = opts.snipEdges;
             torchPaddingLength = opts.torchPaddingLength;
-            round_to_power_of_two = opts.round_to_power_of_two;
-            padMod = opts.padMod;
-            chunkLength_ms = opts.chunkLength_ms;
+            roundToPowerOfTwo = opts.roundToPowerOfTwo;
+            *padMod = *opts.padMod;
+            chunkLengthMs = opts.chunkLengthMs;
+            *inputAudio = *opts.inputAudio;
 
         }
 
         FrameExtractionOptions() :
-            samp_freq(16000),
-            frame_shift_ms(10.0),
-            frame_length_ms(25.0),
+            sampFreq(16000),
+            frameShiftMs(10.0),
+            frameLengthMs(25.0),
             dither(0.0),
-            preemph_coeff(0),
-            remove_dc_offset(false),
-            window_type("hanning_periodic"),
-            round_to_power_of_two(false),
-            blackman_coeff(0.42),
-            snip_edges(true),
-            allow_downsample(false),
-            allow_upsample(false),
-            max_feature_vectors(-1),
+            preemphCoeff(0),
+            removeDcOffset(false),
+            windowType("hanning_periodic"),
+            roundToPowerOfTwo(false),
+            blackmanCoeff(0.42),
+            snipEdges(true),
+            allowDownsample(false),
+            allowUpsample(false),
+            maxFeatureVectors(-1),
             torchPaddingLength(200),
             padMod("reflect"),
-            chunkLength_ms(30000.0)
+            chunkLengthMs(30000.0)
         { }
         INT32 WindowShift() const {
-            return static_cast<INT32>(samp_freq * 0.001 * frame_shift_ms);
+            return static_cast<INT32>(sampFreq * 0.001 * frameShiftMs);
         }
         INT32 WindowSize() const {
-            return static_cast<INT32>(samp_freq * 0.001 * frame_length_ms);
+            return static_cast<INT32>(sampFreq * 0.001 * frameLengthMs);
         }
         INT32 PaddedAudioSize() const {
-            return static_cast<INT32>(samp_freq * 0.001 * chunkLength_ms);
+            return static_cast<INT32>(sampFreq * 0.001 * chunkLengthMs);
         }
         INT32 PaddedWindowSize() const {
-            if (round_to_power_of_two) {
+            if (roundToPowerOfTwo) {
                 int n = WindowSize();
                 ASSERT(n > 0);
                 n--;
@@ -110,7 +110,7 @@ namespace s2t {
             else {
                 return WindowSize();
             }
-            //return (round_to_power_of_two ? RoundUpToNearestPowerOfTwo(WindowSize()) : WindowSize());
+            //return (roundToPowerOfTwo ? RoundUpToNearestPowerOfTwo(WindowSize()) : WindowSize());
         }
     };
     struct FeatureWindowFunction {
@@ -153,7 +153,7 @@ namespace s2t {
 
     void Dither(XTensor waveform, float dither_value);
 
-    void Preemphasize(XTensor waveform, float preemph_coeff);
+    void Preemphasize(XTensor waveform, float preemphCoeff);
 
     /**
       This function does all the windowing steps after actually
@@ -239,8 +239,12 @@ namespace s2t {
         // using the options class, that we cache at this level.
         OfflineFeatureTpl(const Options& opts) :
             computer_(opts),
-            feature_window_function_(computer_.GetFrameOptions()) { }
+            feature_window_function_(computer_.GetFrameOptions()) { 
+            //computer_ = opts;
+        }
+        OfflineFeatureTpl() :{
 
+        }
         // Internal (and back-compatibility) interface for computing features, which
         // requires that the user has already checked that the sampling frequency
         // of the waveform is equal to the sampling frequency specified in
@@ -275,6 +279,17 @@ namespace s2t {
             float sample_freq,
             float vtln_warp,
             XTensor* output);
+        void Read() {
+            ifstream inFile(computer_.GetFrameOptions().inputAudio, ios::in | ios::binary);
+            if (!inFile) {
+                cout << "Error: no inputAudio file" << endl;
+            }
+            data_.Read(inFile);
+        }
+
+        const class WaveData & Data() const {
+            return data_;
+        }
 
         INT32 Dim() const { return computer_.Dim(); }
 
@@ -284,8 +299,8 @@ namespace s2t {
             feature_window_function_(other.feature_window_function_) { }
     private:
         // Disallow assignment.
-        OfflineFeatureTpl<F>& operator =(const OfflineFeatureTpl<F>& other);
-
+        // OfflineFeatureTpl<F>& operator =(const OfflineFeatureTpl<F>& other);
+        WaveData data_;
         F computer_;
         FeatureWindowFunction feature_window_function_;
     };
@@ -297,11 +312,8 @@ namespace s2t {
         float vtln_warp,
         XTensor* output) {
         ASSERT(output != NULL);
-        float new_sample_freq = computer_.GetFrameOptions().samp_freq;
-        
-
-        struct FrameExtractionOptions opt;
-        INT32 paddedAudioSize = { opt.PaddedAudioSize() };
+        float new_sample_freq = computer_.GetFrameOptions().sampFreq;
+        INT32 paddedAudioSize = { computer_.GetFrameOptions().PaddedAudioSize() };
         XTensor paddedWave;
         XTensor torchPaddedWave;
         int startIndex = { 0 };
@@ -318,7 +330,7 @@ namespace s2t {
             torchPaddedWave.SetData(paddedWave.GetCell(&startIndex, 1), paddedWave.GetDim(0), computer_.GetFrameOptions().torchPaddingLength);
             
             
-            if (computer_.GetFrameOptions().padMod == "reflect") {
+            if (strcmp(computer_.GetFrameOptions().padMod,"reflect") == 0) {
                 for (int i = 0; i <= computer_.GetFrameOptions().torchPaddingLength; i++) {
                     torchPaddedWave.Set1D(paddedWave.Get1D(i), computer_.GetFrameOptions().torchPaddingLength - i);
                     torchPaddedWave.Set1D(paddedWave.Get1D(paddedWave.GetDim(0) - i - 1), torchPaddedWave.GetDim(0) - computer_.GetFrameOptions().torchPaddingLength + i - 1);
@@ -348,14 +360,14 @@ namespace s2t {
         }
         else {
             if (new_sample_freq < sample_freq &&
-                !computer_.GetFrameOptions().samp_freq)
+                !computer_.GetFrameOptions().sampFreq)
                 ASSERT(FALSE);
                 //ERR << "Waveform and config sample Frequency mismatch: "
                 //<< sample_freq << " .vs " << new_sample_freq
                 //<< " (use --allow-downsample=true to allow "
                 //<< " downsampling the waveform).";
             else if (new_sample_freq > sample_freq &&
-                !computer_.GetFrameOptions().samp_freq)
+                !computer_.GetFrameOptions().sampFreq)
                 ASSERT(FALSE);
                 //ERR << "Waveform and config sample Frequency mismatch: "
                 //<< sample_freq << " .vs " << new_sample_freq
@@ -402,8 +414,9 @@ namespace s2t {
             computer_.Compute(raw_log_energy, vtln_warp, &window, output_row);
             output->SetData(output_row.GetCell(startIndex, 2), cols_out, r * cols_out);
         }
-        int newDimSize[] = { rows_out - 1 , cols_out };
-        output->SetDim(newDimSize);
+        *output = SelectRange(*output, 0, 0, rows_out - 1);
+        // int newDimSize[] = { rows_out - 1 , cols_out };
+        // output->SetDim(newDimSize);
         XTensor temp = ReduceMax(ReduceMax(*output, 0), 0);
         float outputMax = temp.Get0D();
         ClipMe(*output, outputMax - 8, outputMax);

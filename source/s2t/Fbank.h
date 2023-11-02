@@ -28,6 +28,7 @@
 #include <vector>
 #include "Fbank-function.h"
 #include "Fbank-function-inl.h"
+#include "S2TConfig.h"
 #include <complex>
 using namespace nts;
 
@@ -41,46 +42,96 @@ namespace s2t {
 
     // MelBanksOptions is about how many MelBank in MelBankGroup and some other properties.
     struct MelBanksOptions {
-        INT32 num_bins;  // e.g. 25; number of triangular bins
-        float low_freq;  // e.g. 20; lower frequency cutoff
-        float high_freq;  // an upper frequency cutoff; 0 -> no cutoff, negative
+        INT32 numBins;  // e.g. 25; number of triangular bins
+        float lowFreq;  // e.g. 20; lower frequency cutoff
+        float highFreq;  // an upper frequency cutoff; 0 -> no cutoff, negative
         // ->added to the Nyquist frequency to get the cutoff.
-        float vtln_low;  // vtln lower cutoff of warping function.
-        float vtln_high;  // vtln upper cutoff of warping function: if negative, added
+        float vtlnLow;  // vtln lower cutoff of warping function.
+        float vtlnHigh;  // vtln upper cutoff of warping function: if negative, added
         // to the Nyquist frequency to get the cutoff.
-        bool debug_mel;
-        // htk_mode is a "hidden" config, it does not show up on command line.
+        bool debugMel;
+        // htkMode is a "hidden" config, it does not show up on command line.
         // Enables more exact compatibility with HTK, for testing purposes.  Affects
         // mel-energy flooring and reproduces a bug in HTK.
-        bool htk_mode;
-        std::string customFilter;
-        explicit MelBanksOptions(int num_bins = 23)
-            : num_bins(num_bins), low_freq(20), high_freq(0), vtln_low(100),
-            vtln_high(-500), debug_mel(false), htk_mode(false), customFilter("C:\\Code\\VS\\NiuTrans.ST\\mel.csv") {}
+        bool htkMode;
+        char customFilter[MAX_NAME_LEN];
+        explicit MelBanksOptions(int numBins = 23)
+            : numBins(numBins), lowFreq(20), highFreq(0), vtlnLow(100),
+            vtlnHigh(-500), debugMel(false), htkMode(false), customFilter("../mel.csv") {}
     };
 
     struct FbankOptions {
-        FrameExtractionOptions frame_opts;
-        MelBanksOptions mel_opts;
-        bool use_energy;  // append an extra dimension with energy to the filter banks
-        float energy_floor;
-        bool raw_energy;  // If true, compute energy before preemphasis and windowing
-        bool htk_compat;  // If true, put energy last (if using energy)
-        bool use_log_fbank;  // if true (default), produce log-filterbank, else linear
-        bool use_power;  // if true (default), use power in filterbank analysis, else magnitude.
+        FrameExtractionOptions frameOpts;
+        MelBanksOptions melOpts;
+        bool useEnergy;  // append an extra dimension with energy to the filter banks
+        float energyFloor;
+        bool rawEnergy;  // If true, compute energy before preemphasis and windowing
+        bool htkCompat;  // If true, put energy last (if using energy)
+        bool useLogFbank;  // if true (default), produce log-filterbank, else linear
+        bool usePower;  // if true (default), use power in filterbank analysis, else magnitude.
         bool oneSide;
+        
 
-        FbankOptions() : mel_opts(80),
-            // defaults the #mel-banks to 23 for the FBANK computations.
-            // this seems to be common for 16khz-sampled data,
-            // but for 8khz-sampled data, 15 may be better.
-            use_energy(false),
-            energy_floor(0.0),
-            raw_energy(true),
-            htk_compat(false),
-            use_log_fbank(true),
+        FbankOptions() : melOpts(80),
+            useEnergy(false),
+            energyFloor(0.0),
+            rawEnergy(true),
+            htkCompat(false),
+            useLogFbank(true),
             oneSide(false),
-            use_power(true) {}
+            usePower(true) {}
+
+        FbankOptions(S2TConfig& config)
+        {
+            useEnergy = config.extractor.useEnergy;
+            energyFloor = config.extractor.energyFloor;
+            
+            rawEnergy = config.extractor.rawEnergy;
+            htkCompat = config.extractor.htkCompat;
+            useLogFbank = config.extractor.useLogFbank;
+            usePower = config.extractor.usePower;
+            oneSide = config.extractor.oneSide;
+
+            std::strcpy(frameOpts.inputAudio, config.extractor.inputAudio);
+
+            frameOpts.sampFreq = config.extractor.sampFreq;
+            frameOpts.frameShiftMs = config.extractor.frameShiftMs;
+            frameOpts.frameLengthMs = config.extractor.frameLengthMs;
+            frameOpts.chunkLengthMs = config.extractor.chunkLengthMs;
+            frameOpts.dither = config.extractor.dither;
+            frameOpts.preemphCoeff = config.extractor.preemphCoeff;
+            frameOpts.removeDcOffset = config.extractor.removeDcOffset;
+            std::strcpy(frameOpts.windowType, config.extractor.windowType);
+
+            frameOpts.roundToPowerOfTwo = config.extractor.roundToPowerOfTwo;
+            frameOpts.blackmanCoeff = config.extractor.blackmanCoeff;
+            frameOpts.snipEdges = config.extractor.snipEdges;
+            frameOpts.allowDownsample = config.extractor.allowDownsample;
+            frameOpts.allowUpsample = config.extractor.allowUpsample;
+            frameOpts.maxFeatureVectors = config.extractor.maxFeatureVectors;
+            frameOpts.torchPaddingLength = config.extractor.torchPaddingLength;
+            std::strcpy(frameOpts.padMod, config.extractor.padMod);
+
+            melOpts.numBins = config.extractor.numBins;
+            melOpts.lowFreq = config.extractor.lowFreq;
+            melOpts.highFreq = config.extractor.highFreq;
+            melOpts.vtlnLow = config.extractor.vtlnLow;
+            melOpts.vtlnHigh = config.extractor.vtlnHigh;
+            melOpts.debugMel = config.extractor.debugMel;
+            melOpts.htkMode = config.extractor.htkMode;
+            std::strcpy(melOpts.customFilter, config.extractor.customFilter);
+        }
+        
+        explicit FbankOptions(const FbankOptions& opts) : melOpts(opts.melOpts),
+            frameOpts(opts.frameOpts),
+            useEnergy(opts.useEnergy),
+            energyFloor(opts.energyFloor),
+            rawEnergy(opts.rawEnergy),
+            htkCompat(opts.htkCompat),
+            useLogFbank(opts.useLogFbank),
+            oneSide(opts.oneSide),
+            usePower(opts.usePower) {}
+        
     };
 
     class MelBanks {
@@ -94,24 +145,24 @@ namespace s2t {
             return 1127.0f * logf(1.0f + freq / 700.0f);
         }
 
-        static float VtlnWarpFreq(float vtln_low_cutoff,
-            float vtln_high_cutoff,  // discontinuities in warp func
-            float low_freq,
-            float high_freq,  // upper+lower frequency cutoffs in
+        static float VtlnWarpFreq(float vtlnLow_cutoff,
+            float vtlnHigh_cutoff,  // discontinuities in warp func
+            float lowFreq,
+            float highFreq,  // upper+lower frequency cutoffs in
             // the mel computation
             float vtln_warp_factor,
             float freq);
 
-        static float VtlnWarpMelFreq(float vtln_low_cutoff,
-            float vtln_high_cutoff,
-            float low_freq,
-            float high_freq,
+        static float VtlnWarpMelFreq(float vtlnLow_cutoff,
+            float vtlnHigh_cutoff,
+            float lowFreq,
+            float highFreq,
             float vtln_warp_factor,
             float mel_freq);
 
 
         MelBanks(const MelBanksOptions& opts,
-            const FrameExtractionOptions& frame_opts,
+            const FrameExtractionOptions& frameOpts,
             float vtln_warp_factor);
 
         /// Compute Mel energies (note: not log enerties).
@@ -134,7 +185,7 @@ namespace s2t {
         // Disallow assignment
         MelBanks& operator = (const MelBanks& other);
 
-        // center frequencies of bins, numbered from 0 ... num_bins-1.
+        // center frequencies of bins, numbered from 0 ... numBins-1.
         // Needed by GetCenterFreqs().
         XTensor center_freqs_;
 
@@ -144,7 +195,7 @@ namespace s2t {
         
 
         bool debug_;
-        bool htk_mode_;
+        bool htkMode_;
     };
 
     class FbankComputer {
@@ -155,13 +206,13 @@ namespace s2t {
         FbankComputer(const FbankComputer& other);
 
         INT32 Dim() const {
-            return opts_.mel_opts.num_bins + (opts_.use_energy ? 1 : 0);
+            return opts_.melOpts.numBins + (opts_.useEnergy ? 1 : 0);
         }
 
-        bool NeedRawLogEnergy() const { return opts_.use_energy && opts_.raw_energy; }
+        bool NeedRawLogEnergy() const { return opts_.useEnergy && opts_.rawEnergy; }
 
         const FrameExtractionOptions& GetFrameOptions() const {
-            return opts_.frame_opts;
+            return opts_.frameOpts;
         }
 
         /**
@@ -197,7 +248,7 @@ namespace s2t {
 
 
         FbankOptions opts_;
-        float log_energy_floor_;
+        float logEnergyFloor_;
         std::map<float, MelBanks*> mel_banks_;  // float is VTLN coefficient.
         SplitRadixRealFft<float>* srfft_;
         // Disallow assignment.

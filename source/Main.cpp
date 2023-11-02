@@ -41,6 +41,7 @@ int main(int argc, const char** argv)
 {
 
     //--------------------------Load Wave--------------------------
+    /*
     ifstream inFile("C:\\Code\\VS\\NiuTrans.ST\\test.wav", ios::in | ios::binary);
     if (!inFile) {
         cout << "error no file" << endl;
@@ -58,9 +59,9 @@ int main(int argc, const char** argv)
     FILE* outputFile = fopen("C:\\Code\\VS\\NiuTrans.ST\\output.txt", "w");
     out.Dump(outputFile);
     fclose(outputFile);
-    return 0;
+    */
     //--------------------------Load Wave--------------------------
-    /*
+    
     if (argc == 0)
         return 1;
     // load configurations 
@@ -68,8 +69,14 @@ int main(int argc, const char** argv)
     S2TModel model;
     model.InitModel(config);
 
+    //--------------------------Load Wave--------------------------
+    struct FbankOptions fOpts(config);
+    class FbankComputer computer(fOpts);
+    class OfflineFeatureTpl<FbankComputer> oft(computer);
+    //--------------------------Load Wave--------------------------
+
     Generator generator;
-    generator.Init(config, model);
+    generator.Init(config, model, oft);
     generator.Generate();
-    */
+    return 0;
 }

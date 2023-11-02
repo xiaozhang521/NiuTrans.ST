@@ -61,11 +61,12 @@ namespace s2t {
     }
 
     FbankComputer::FbankComputer(const FbankOptions& opts) :
-        opts_(opts), srfft_(NULL) {
-        if (opts.energy_floor > 0.0)
-            log_energy_floor_ = logf(opts.energy_floor);
+        srfft_(NULL) {
+        opts_ = opts;
+        if (opts.energyFloor > 0.0)
+            logEnergyFloor_ = logf(opts.energyFloor);
 
-        INT32 padded_window_size = opts.frame_opts.PaddedWindowSize();
+        INT32 padded_window_size = opts.frameOpts.PaddedWindowSize();
         if ((padded_window_size & (padded_window_size - 1)) == 0)  // Is a power of two.
             srfft_ = new SplitRadixRealFft<float>(padded_window_size);
 
@@ -75,8 +76,9 @@ namespace s2t {
     }
 
     FbankComputer::FbankComputer(const FbankComputer& other) :
-        opts_(other.opts_), log_energy_floor_(other.log_energy_floor_),
+        opts_(other.opts_), logEnergyFloor_(other.logEnergyFloor_),
         mel_banks_(other.mel_banks_), srfft_(NULL) {
+        opts_ = other.opts_;
         for (std::map<float, MelBanks*>::iterator iter = mel_banks_.begin();
             iter != mel_banks_.end();
             ++iter)
@@ -96,8 +98,8 @@ namespace s2t {
         MelBanks* this_mel_banks = NULL;
         std::map<float, MelBanks*>::iterator iter = mel_banks_.find(vtln_warp);
         if (iter == mel_banks_.end()) {
-            this_mel_banks = new MelBanks(opts_.mel_opts,
-                opts_.frame_opts,
+            this_mel_banks = new MelBanks(opts_.melOpts,
+                opts_.frameOpts,
                 vtln_warp);
             mel_banks_[vtln_warp] = this_mel_banks;
         }
@@ -115,11 +117,11 @@ namespace s2t {
 
         const MelBanks& mel_banks = *(GetMelBanks(vtln_warp));
 
-        ASSERT(signal_frame->GetDim(0) == opts_.frame_opts.PaddedWindowSize());
+        ASSERT(signal_frame->GetDim(0) == opts_.frameOpts.PaddedWindowSize());
 
 
         // Compute energy after window function (not the raw one).
-        if (opts_.use_energy && !opts_.raw_energy)
+        if (opts_.useEnergy && !opts_.rawEnergy)
             signal_raw_log_energy = logf(std::max<float>(ReduceSum(Multiply(signal_frame, signal_frame, 0), 0).Get0D(), std::numeric_limits<float>::epsilon()));
 
         if (opts_.oneSide) {
@@ -152,24 +154,24 @@ namespace s2t {
 
         // We don't use magnitude for the time being
         // Use magnitude instead of power if requested.
-        if (!opts_.use_power)
+        if (!opts_.usePower)
             SqrtMe(power_spectrum);
 
-        INT32 mel_offset = ((opts_.use_energy && !opts_.htk_compat) ? 1 : 0);
+        INT32 mel_offset = ((opts_.useEnergy && !opts_.htkCompat) ? 1 : 0);
         XTensor mel_energies(feature);
         // It's a tensor with two dim.
-        int melDimSize = { opts_.mel_opts.num_bins };
+        int melDimSize = { opts_.melOpts.numBins };
         mel_energies.SetDim(&melDimSize);
         int startIndex = { 0 };
-        mel_energies.SetData(feature.GetCell(&startIndex, 1), opts_.mel_opts.num_bins, mel_offset);
+        mel_energies.SetData(feature.GetCell(&startIndex, 1), opts_.melOpts.numBins, mel_offset);
 
         // Sum with mel fiterbanks over the power spectrum
-        if (opts_.mel_opts.num_bins == 80 && opts_.mel_opts.customFilter != ""){
+        if (opts_.melOpts.numBins == 80 && opts_.melOpts.customFilter != ""){
             XTensor filter;
             filter.order = 2;
-            int filterDimSize[] = { opts_.mel_opts.num_bins , dimSize[0]};
+            int filterDimSize[] = { opts_.melOpts.numBins , dimSize[0]};
             filter.Resize(2, filterDimSize);
-            std::ifstream inputFile(opts_.mel_opts.customFilter);
+            std::ifstream inputFile(opts_.melOpts.customFilter);
             ASSERT(inputFile.is_open());
             std::vector<std::vector<std::string>> csvData;
             std::string line;
@@ -217,19 +219,19 @@ namespace s2t {
             mel_banks.Compute(power_spectrum, &mel_energies);
         }
         
-        if (opts_.use_log_fbank) {
+        if (opts_.useLogFbank) {
             
             // Avoid log of zero (which should be prevented anyway by dithering).
             ClipMe(mel_energies, 1e-10, FLT_MAX);
             Log10Me(mel_energies);
         }
 
-        // Copy energy as first value (or the last, if htk_compat == true).
-        if (opts_.use_energy) {
-            if (opts_.energy_floor > 0.0 && signal_raw_log_energy < log_energy_floor_) {
-                signal_raw_log_energy = log_energy_floor_;
+        // Copy energy as first value (or the last, if htkCompat == true).
+        if (opts_.useEnergy) {
+            if (opts_.energyFloor > 0.0 && signal_raw_log_energy < logEnergyFloor_) {
+                signal_raw_log_energy = logEnergyFloor_;
             }
-            INT32 energy_index = opts_.htk_compat ? opts_.mel_opts.num_bins : 0;
+            INT32 energy_index = opts_.htkCompat ? opts_.melOpts.numBins : 0;
             feature.Set1D(signal_raw_log_energy, energy_index);
         }
 
@@ -237,20 +239,20 @@ namespace s2t {
     }
 
     // ------------MelBanks VtlnWarpFreq------------
-    float MelBanks::VtlnWarpFreq(float vtln_low_cutoff,  // upper+lower frequency cutoffs for VTLN.
-        float vtln_high_cutoff,
-        float low_freq,  // upper+lower frequency cutoffs in mel computation
-        float high_freq,
+    float MelBanks::VtlnWarpFreq(float vtlnLow_cutoff,  // upper+lower frequency cutoffs for VTLN.
+        float vtlnHigh_cutoff,
+        float lowFreq,  // upper+lower frequency cutoffs in mel computation
+        float highFreq,
         float vtln_warp_factor,
         float freq) {
         /// This computes a VTLN warping function that is not the same as HTK's one,
         /// but has similar inputs (this function has the advantage of never producing
         /// empty bins).
 
-        /// This function computes a warp function F(freq), defined between low_freq and
-        /// high_freq inclusive, with the following properties:
-        ///  F(low_freq) == low_freq
-        ///  F(high_freq) == high_freq
+        /// This function computes a warp function F(freq), defined between lowFreq and
+        /// highFreq inclusive, with the following properties:
+        ///  F(lowFreq) == lowFreq
+        ///  F(highFreq) == highFreq
         /// The function is continuous and piecewise linear with two inflection
         ///   points.
         /// The lower inflection point (measured in terms of the unwarped
@@ -259,129 +261,129 @@ namespace s2t {
         ///   described below.
         /// If l <= f <= h, then F(f) = f/vtln_warp_factor.
         /// If the higher inflection point (measured in terms of the unwarped
-        ///   frequency) is at h, then max(h, F(h)) == vtln_high_cutoff.
+        ///   frequency) is at h, then max(h, F(h)) == vtlnHigh_cutoff.
         ///   Since (by the last point) F(h) == h/vtln_warp_factor, then
-        ///   max(h, h/vtln_warp_factor) == vtln_high_cutoff, so
-        ///   h = vtln_high_cutoff / max(1, 1/vtln_warp_factor).
-        ///     = vtln_high_cutoff * min(1, vtln_warp_factor).
+        ///   max(h, h/vtln_warp_factor) == vtlnHigh_cutoff, so
+        ///   h = vtlnHigh_cutoff / max(1, 1/vtln_warp_factor).
+        ///     = vtlnHigh_cutoff * min(1, vtln_warp_factor).
         /// If the lower inflection point (measured in terms of the unwarped
-        ///   frequency) is at l, then min(l, F(l)) == vtln_low_cutoff
-        ///   This implies that l = vtln_low_cutoff / min(1, 1/vtln_warp_factor)
-        ///                       = vtln_low_cutoff * max(1, vtln_warp_factor)
+        ///   frequency) is at l, then min(l, F(l)) == vtlnLow_cutoff
+        ///   This implies that l = vtlnLow_cutoff / min(1, 1/vtln_warp_factor)
+        ///                       = vtlnLow_cutoff * max(1, vtln_warp_factor)
 
 
-        if (freq < low_freq || freq > high_freq) return freq;  // in case this gets called
+        if (freq < lowFreq || freq > highFreq) return freq;  // in case this gets called
         // for out-of-range frequencies, just return the freq.
 
-        ASSERT(vtln_low_cutoff > low_freq &&
+        ASSERT(vtlnLow_cutoff > lowFreq &&
             "be sure to set the --vtln-low option higher than --low-freq");
-        ASSERT(vtln_high_cutoff < high_freq &&
+        ASSERT(vtlnHigh_cutoff < highFreq &&
             "be sure to set the --vtln-high option lower than --high-freq [or negative]");
         float one = 1.0;
-        float l = vtln_low_cutoff * std::max<float>(one, vtln_warp_factor);
-        float h = vtln_high_cutoff * std::min<float>(one, vtln_warp_factor);
+        float l = vtlnLow_cutoff * std::max<float>(one, vtln_warp_factor);
+        float h = vtlnHigh_cutoff * std::min<float>(one, vtln_warp_factor);
         float scale = 1.0 / vtln_warp_factor;
         float Fl = scale * l;  // F(l);
         float Fh = scale * h;  // F(h);
-        ASSERT(l > low_freq && h < high_freq);
+        ASSERT(l > lowFreq && h < highFreq);
         // slope of left part of the 3-piece linear function
-        float scale_left = (Fl - low_freq) / (l - low_freq);
+        float scale_left = (Fl - lowFreq) / (l - lowFreq);
         // [slope of center part is just "scale"]
 
         // slope of right part of the 3-piece linear function
-        float scale_right = (high_freq - Fh) / (high_freq - h);
+        float scale_right = (highFreq - Fh) / (highFreq - h);
 
         if (freq < l) {
-            return low_freq + scale_left * (freq - low_freq);
+            return lowFreq + scale_left * (freq - lowFreq);
         }
         else if (freq < h) {
             return scale * freq;
         }
         else {  // freq >= h
-            return high_freq + scale_right * (freq - high_freq);
+            return highFreq + scale_right * (freq - highFreq);
         }
     }
 
-    float MelBanks::VtlnWarpMelFreq(float vtln_low_cutoff,  // upper+lower frequency cutoffs for VTLN.
-        float vtln_high_cutoff,
-        float low_freq,  // upper+lower frequency cutoffs in mel computation
-        float high_freq,
+    float MelBanks::VtlnWarpMelFreq(float vtlnLow_cutoff,  // upper+lower frequency cutoffs for VTLN.
+        float vtlnHigh_cutoff,
+        float lowFreq,  // upper+lower frequency cutoffs in mel computation
+        float highFreq,
         float vtln_warp_factor,
         float mel_freq) {
-        return MelScale(VtlnWarpFreq(vtln_low_cutoff, vtln_high_cutoff,
-            low_freq, high_freq,
+        return MelScale(VtlnWarpFreq(vtlnLow_cutoff, vtlnHigh_cutoff,
+            lowFreq, highFreq,
             vtln_warp_factor, InverseMelScale(mel_freq)));
     }
 
     MelBanks::MelBanks(const MelBanksOptions& opts,
-        const FrameExtractionOptions& frame_opts,
+        const FrameExtractionOptions& frameOpts,
         float vtln_warp_factor) :
-        htk_mode_(opts.htk_mode) {
-        INT32 num_bins = opts.num_bins;
-        if (num_bins < 3) ASSERT(FALSE); // Must have at least 3 mel bins
-        float sample_freq = frame_opts.samp_freq;
-        INT32 window_length_padded = frame_opts.PaddedWindowSize();
+        htkMode_(opts.htkMode) {
+        INT32 numBins = opts.numBins;
+        if (numBins < 3) ASSERT(FALSE); // Must have at least 3 mel bins
+        float sample_freq = frameOpts.sampFreq;
+        INT32 window_length_padded = frameOpts.PaddedWindowSize();
         ASSERT(window_length_padded % 2 == 0);
         INT32 num_fft_bins = window_length_padded / 2;
         float nyquist = 0.5 * sample_freq;
 
-        float low_freq = opts.low_freq, high_freq;
-        if (opts.high_freq > 0.0)
-            high_freq = opts.high_freq;
+        float lowFreq = opts.lowFreq, highFreq;
+        if (opts.highFreq > 0.0)
+            highFreq = opts.highFreq;
         else
-            high_freq = nyquist + opts.high_freq;
+            highFreq = nyquist + opts.highFreq;
 
         // low-freq should lower than high-freq, and both low-freq and high-freq shoud be higher than 0.0. 
         // Besides, nyquist should be the highest among the three.
-        if (low_freq < 0.0 || low_freq >= nyquist
-            || high_freq <= 0.0 || high_freq > nyquist
-            || high_freq <= low_freq)
+        if (lowFreq < 0.0 || lowFreq >= nyquist
+            || highFreq <= 0.0 || highFreq > nyquist
+            || highFreq <= lowFreq)
             ASSERT(FALSE); 
         
         float fft_bin_width = sample_freq / window_length_padded;
         // fft-bin width [think of it as Nyquist-freq / half-window-length]
 
-        float mel_low_freq = MelScale(low_freq);
-        float mel_high_freq = MelScale(high_freq);
+        float mel_lowFreq = MelScale(lowFreq);
+        float mel_highFreq = MelScale(highFreq);
 
-        debug_ = opts.debug_mel;
+        debug_ = opts.debugMel;
 
-        // divide by num_bins+1 in next line because of end-effects where the bins
+        // divide by numBins+1 in next line because of end-effects where the bins
         // spread out to the sides.
-        float mel_freq_delta = (mel_high_freq - mel_low_freq) / (num_bins + 1);
+        float mel_freq_delta = (mel_highFreq - mel_lowFreq) / (numBins + 1);
 
-        float vtln_low = opts.vtln_low,
-            vtln_high = opts.vtln_high;
-        if (vtln_high < 0.0) {
-            vtln_high += nyquist;
+        float vtlnLow = opts.vtlnLow,
+            vtlnHigh = opts.vtlnHigh;
+        if (vtlnHigh < 0.0) {
+            vtlnHigh += nyquist;
         }
 
         if (vtln_warp_factor != 1.0 &&
-            (vtln_low < 0.0 || vtln_low <= low_freq
-                || vtln_low >= high_freq
-                || vtln_high <= 0.0 || vtln_high >= high_freq
-                || vtln_high <= vtln_low))
+            (vtlnLow < 0.0 || vtlnLow <= lowFreq
+                || vtlnLow >= highFreq
+                || vtlnHigh <= 0.0 || vtlnHigh >= highFreq
+                || vtlnHigh <= vtlnLow))
             ASSERT(FALSE);
-           /* ERR << "Bad values in options: vtln-low " << vtln_low
-            << " and vtln-high " << vtln_high << ", versus "
-            << "low-freq " << low_freq << " and high-freq "
-            << high_freq;*/
+           /* ERR << "Bad values in options: vtln-low " << vtlnLow
+            << " and vtln-high " << vtlnHigh << ", versus "
+            << "low-freq " << lowFreq << " and high-freq "
+            << highFreq;*/
 
-        bins_.resize(num_bins);
-        int dimSize = { num_bins };
+        bins_.resize(numBins);
+        int dimSize = { numBins };
         center_freqs_.Resize(1, &dimSize);
 
-        for (INT32 bin = 0; bin < num_bins; bin++) {
-            float left_mel = mel_low_freq + bin * mel_freq_delta,
-                center_mel = mel_low_freq + (bin + 1) * mel_freq_delta,
-                right_mel = mel_low_freq + (bin + 2) * mel_freq_delta;
+        for (INT32 bin = 0; bin < numBins; bin++) {
+            float left_mel = mel_lowFreq + bin * mel_freq_delta,
+                center_mel = mel_lowFreq + (bin + 1) * mel_freq_delta,
+                right_mel = mel_lowFreq + (bin + 2) * mel_freq_delta;
 
             if (vtln_warp_factor != 1.0) {
-                left_mel = VtlnWarpMelFreq(vtln_low, vtln_high, low_freq, high_freq,
+                left_mel = VtlnWarpMelFreq(vtlnLow, vtlnHigh, lowFreq, highFreq,
                     vtln_warp_factor, left_mel);
-                center_mel = VtlnWarpMelFreq(vtln_low, vtln_high, low_freq, high_freq,
+                center_mel = VtlnWarpMelFreq(vtlnLow, vtlnHigh, lowFreq, highFreq,
                     vtln_warp_factor, center_mel);
-                right_mel = VtlnWarpMelFreq(vtln_low, vtln_high, low_freq, high_freq,
+                right_mel = VtlnWarpMelFreq(vtlnLow, vtlnHigh, lowFreq, highFreq,
                     vtln_warp_factor, right_mel);
             }
             center_freqs_.Set1D(InverseMelScale(center_mel), bin);
@@ -418,7 +420,7 @@ namespace s2t {
             bins_[bin].second.SetData(thisBin.GetCell(&index, 1), size , 0);
 
             // Replicate a bug in HTK, for testing purposes.
-            if (opts.htk_mode && bin == 0 && mel_low_freq != 0.0)
+            if (opts.htkMode && bin == 0 && mel_lowFreq != 0.0)
                 bins_[bin].second.Set1D(0.0, 0);
         }
     }
@@ -427,14 +429,14 @@ namespace s2t {
         center_freqs_(other.center_freqs_),
         bins_(other.bins_),
         debug_(other.debug_),
-        htk_mode_(other.htk_mode_) { }
+        htkMode_(other.htkMode_) { }
 
     void MelBanks::Compute(const XTensor& power_spectrum,
         XTensor* mel_energies_out) const {
-        INT32 num_bins = bins_.size();
-        ASSERT(mel_energies_out->GetDim(0) == num_bins);
+        INT32 numBins = bins_.size();
+        ASSERT(mel_energies_out->GetDim(0) == numBins);
 
-        for (INT32 i = 0; i < num_bins; i++) {
+        for (INT32 i = 0; i < numBins; i++) {
             INT32 offset = bins_[i].first;
             const XTensor& v(bins_[i].second);
             XTensor partPowerSpectrum(&power_spectrum);
@@ -444,7 +446,7 @@ namespace s2t {
             XTensor tempReduce(ReduceSum(Multiply(v, partPowerSpectrum), 0));
             float energy = tempReduce.Get0D();
             // HTK-like flooring- for testing purposes (we prefer dither)
-            if (htk_mode_ && energy < 1.0) energy = 1.0;
+            if (htkMode_ && energy < 1.0) energy = 1.0;
             mel_energies_out->Set1D(energy, i);
 
             // The following assert was added due to a problem with OpenBlas that
