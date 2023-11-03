@@ -216,7 +216,7 @@ namespace s2t {
 		// encoding.BinaryRead(audioFeature);
 
 		// encoding.Dump(stderr, "Decoder input(Encoder output): ", 20);
-		inputDec.Dump(stderr, "Decoder input(Tokens): ", -1);
+		//inputDec.Dump(stderr, "Decoder input(Tokens): ", -1);
 
 		int initTokenLen = inputDec.GetDim(-1);
 
@@ -279,7 +279,7 @@ namespace s2t {
 
 			/* save the predictions */
 			CopyValues(nextToken, indexCPU);
-
+			
 			for (int i = 0; i < batchSize; i++) {
 				if (IsEnd(indexCPU.GetInt(i)))
 					finishedFlags[i] = 1;
@@ -638,8 +638,8 @@ namespace s2t {
 			/* push complete hypotheses into the heap */
 			Collect(next);
 
-			next->prediction.Dump(stderr, "\prediction: ", -1);
-			next->probPath.Dump(stderr, "probPath: ", -1);
+			//next->prediction.Dump(stderr, "\prediction: ", -1);
+			//next->probPath.Dump(stderr, "probPath: ", -1);
 
 			/* stop searching when all hypotheses are completed */
 			if (IsAllCompleted(next)) {

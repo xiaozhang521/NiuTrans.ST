@@ -819,6 +819,7 @@ void XTensor::SetData(const void* d, int num, int beg)
         return;
 
     CheckNTErrors(!isSparse, "TODO");
+    
     CheckNTErrors(num <= unitNum - beg, "Illegal size!");
 
     XMemCopy((char*)data + beg * unitSize, devID, d, -1, num * unitSize);
@@ -1910,25 +1911,26 @@ read data from a binary file
 */
 void XTensor::BinaryRead(FILE* file, size_t offset)
 {
+    int readNum = unitNum - offset;
     switch (dataType) {
         case X_INT: {
-            int* d = new int[unitNum];
-            fread(d, sizeof(int), unitNum, file);
-            SetData(d, unitNum);
+            int* d = new int[readNum];
+            fread(d, sizeof(int), readNum, file);
+            SetData(d, readNum, offset);
             delete[] d;
             break;
         }
         case X_FLOAT16: {
-            unsigned short* d = new unsigned short[unitNum];
-            fread(d, sizeof(unsigned short), unitNum, file);
-            SetData(d, unitNum);
+            unsigned short* d = new unsigned short[readNum];
+            fread(d, sizeof(unsigned short), readNum, file);
+            SetData(d, readNum, offset);
             delete[] d;
             break;
         }
         default: {
-            float* d = new float[unitNum];
-            fread(d, sizeof(float), unitNum, file);
-            SetData(d, unitNum);
+            float* d = new float[readNum];
+            fread(d, sizeof(float), readNum, file);
+            SetData(d, readNum, offset);
             delete[] d;
             break;
         }

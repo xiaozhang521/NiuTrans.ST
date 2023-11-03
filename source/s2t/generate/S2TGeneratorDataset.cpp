@@ -134,11 +134,6 @@ bool S2TGeneratorDataset::LoadBatchToBuf()
             TripleSample* sequence = LoadSample(tmpStrings[tagsMap["audio"]], (int)stol(tmpStrings[tagsMap["frames"]]));
             sequence->index = id;
             buf->Add(sequence);
-            TripleSample* tmpa = (TripleSample*)buf->Get(0);
-            //tmpa->audioSeq->Dump(stderr, 0, 10);
-            //printf("%s\n", tmpa->audioSeq);
-            //printf("%p\n", tmpa->audioSeq->data);
-            std::cout << tmpa->audioPath << endl;
         }
         else {
             emptyLines.Add(id);
@@ -191,7 +186,6 @@ bool S2TGeneratorDataset::GetBatchSimple(XList* inputs, XList* info)
         && realBatchSize < config->common.sBatchSize) {
         realBatchSize++;
     }
-
     realBatchSize = MIN(realBatchSize, config->common.sBatchSize);
 
     /* make sure the batch size is valid */
@@ -217,15 +211,17 @@ bool S2TGeneratorDataset::GetBatchSimple(XList* inputs, XList* info)
     /* TODO!!! Check the length of audio */
     XTensor* batchEnc = (XTensor*)(inputs->Get(0));
     XTensor* paddingEnc = (XTensor*)(inputs->Get(1));
+    InitTensor3D(batchEnc, realBatchSize, maxLen, config->s2tmodel.fbank, X_FLOAT, config->common.devID);
     //int curSrc = 0;
-    //XTensor* inputFeature = NULL;
+    //TensorList featureList;
+    //XTensor inputFeature;
+    //printf("%d\n", batchEnc==NULL);
     for (int i = 0; i < realBatchSize; ++i) {
         TripleSample* sample = (TripleSample*)(buf->Get(bufIdx + i));
-        //IntList* src = sample->srcSeq;
-        InitTensor2D(batchEnc, sample->fLen, config->s2tmodel.fbank, X_FLOAT, config->common.devID);
         FILE* audioFile = fopen(sample->audioPath.data(), "rb");
         if (audioFile)
-            batchEnc->BinaryRead(audioFile);
+            batchEnc->BinaryRead(audioFile, i * maxLen * config->s2tmodel.fbank);
+        //featureList.Add(&inputFeature);
         //XTensor* speechFeature = sample->audioSeq;
         //speechFeature->Dump();
         indices->Add(sample->index);
@@ -243,9 +239,10 @@ bool S2TGeneratorDataset::GetBatchSimple(XList* inputs, XList* info)
         //while (curSrc < maxLen * (i + 1))
         //    paddingValues[curSrc++] = 0.0F;
     }
+    
 
     bufIdx += realBatchSize;
-
+    //Concatenate(featureList, *batchEnc, 0);
     //batchEnc = speechFeature
     //InitTensor2D(batchEnc, realBatchSize, maxLen, X_INT, config->common.devID);
     //InitTensor2D(paddingEnc, realBatchSize, maxLen, config->common.useFP16 ? X_FLOAT : X_FLOAT, config->common.devID);
