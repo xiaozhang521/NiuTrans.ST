@@ -39,9 +39,10 @@ namespace s2t
     Generator::~Generator()
     {
         if (config->inference.beamSize > 1)
-            delete (BeamSearch*)seacher;
+            delete (S2TBeamSearch*)seacher;
         else
             delete (S2TGreedySearch*)seacher;
+        seacher = nullptr;
         delete outputBuf;
     }
 
@@ -56,8 +57,8 @@ namespace s2t
             LOG("Inferencing with beam search (beam=%d, batchSize= %d sents | %d tokens, lenAlpha=%.2f, maxLenAlpha=%.2f) ",
                 config->inference.beamSize, config->common.sBatchSize, config->common.wBatchSize,
                 config->inference.lenAlpha, config->inference.maxLenAlpha);
-            seacher = new BeamSearch();
-            ((BeamSearch*)seacher)->Init(myConfig);
+            seacher = new S2TBeamSearch();
+            ((S2TBeamSearch*)seacher)->Init(myConfig);
         }
         else if (config->inference.beamSize == 1) {
             LOG("Inferencing with greedy search (batchSize= %d sents | %d tokens, maxLenAlpha=%.2f)",
@@ -96,10 +97,40 @@ namespace s2t
         if (config->inference.beamSize == 1) {
             ((S2TGreedySearch*)seacher)->Search(model, batchEnc, paddingEnc, outputs);
         }
+        else {
+            XTensor score;
+            ((S2TBeamSearch*)seacher)->Search(model, batchEnc, paddingEnc, outputs, score);
+        }
 
+        /*print output*/
+        for (int i = 0; i < batchSize; i++) {
+            cout << "batch:" << i << " output: ";
+            for (int j = 0; j < outputs[i]->count; j++) {
+                cout << outputs[i]->GetItem(j) << " ";
+            }
+            cout << endl;
+        }
 
+        string tokens = "";
+        for (int i = 0; i < batchSize; i++) {
+            for (int j = 0; j < outputs[i]->count; j++) {
+                tokens += to_string(outputs[i]->GetItem(j));
+                if (j < outputs[i]->count - 1)
+                    tokens += " ";
+            }
+            if (i < batchSize - 1)
+                tokens += "\n";           
+        }
 
-
+        /*ofstream file(config->inference.outputFN);
+        if (!file.is_open()) {
+            std::cerr << "Failed to open the file." << std::endl;
+        }
+        else {
+            file << tokens;
+            file.close();
+        }*/
+        
 
         if (isSingle) {
             /*TODO*/

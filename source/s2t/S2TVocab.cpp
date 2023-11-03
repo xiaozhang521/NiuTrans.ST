@@ -22,7 +22,6 @@
 #include <fstream>
 #include <iostream>
 #include <locale>
-#include <codecvt>
 #include "S2TVocab.h"
 #include "./S2TConfig.h"
 
@@ -138,61 +137,6 @@ void S2TVocab::Test()
     // string testSentence = "�@���Ō�춹�Ԫ1654��";
     // cout << "Origin String: " << testSentence << endl;
     //StringToUtf8(testSentence);
-}
-
-wstring S2TVocab::Utf8ToString(const std::vector<unsigned char>& utf8Bytes)
-{
-    std::wstring result;
-    for (size_t i = 0; i < utf8Bytes.size();) {
-        wchar_t unicodeChar;
-        unsigned char currentByte = utf8Bytes[i++];
-
-        if (currentByte <= 0x7F) {
-            unicodeChar = static_cast<wchar_t>(currentByte);
-        }
-        else if (currentByte <= 0xDF) {
-            unicodeChar = static_cast<wchar_t>(currentByte & 0x1F);
-            unicodeChar <<= 6;
-            unicodeChar |= static_cast<wchar_t>(utf8Bytes[i++] & 0x3F);
-        }
-        else if (currentByte <= 0xEF) {
-            unicodeChar = static_cast<wchar_t>(currentByte & 0x0F);
-            unicodeChar <<= 12;
-            unicodeChar |= static_cast<wchar_t>((utf8Bytes[i++] & 0x3F) << 6);
-            unicodeChar |= static_cast<wchar_t>(utf8Bytes[i++] & 0x3F);
-        }
-        else if (currentByte <= 0xF7) {
-            unicodeChar = static_cast<wchar_t>(currentByte & 0x07);
-            unicodeChar <<= 18;
-            unicodeChar |= static_cast<wchar_t>((utf8Bytes[i++] & 0x3F) << 12);
-            unicodeChar |= static_cast<wchar_t>((utf8Bytes[i++] & 0x3F) << 6);
-            unicodeChar |= static_cast<wchar_t>(utf8Bytes[i++] & 0x3F);
-        }
-        else {
-            unicodeChar = L'?';
-        }
-        result.push_back(unicodeChar);
-    }
-    return result;
-}
-
-wstring S2TVocab::Utf8ToString(const string& utf8Bytes)
-{
-    cout << "Utf-8 String: " << utf8Bytes << endl;
-    wstring_convert<codecvt_utf8<wchar_t>> converter;
-    wstring wideString = converter.from_bytes(utf8Bytes);
-    wcout << "Wide String: " << wideString << endl;
-    return wideString;
-}
-
-string S2TVocab::StringToUtf8(const string& String)
-{
-    cout << "Origin String: " << String << endl;
-    wstring_convert< codecvt_utf8<wchar_t> > converter;
-    wstring wideString = converter.from_bytes(String);
-    string utf8Bytes = converter.to_bytes(wideString);
-    cout << "Utf-8 String: " << utf8Bytes << endl;
-    return utf8Bytes;
 }
 
 } /* end of the s2t namespace */

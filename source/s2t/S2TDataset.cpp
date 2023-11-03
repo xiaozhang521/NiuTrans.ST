@@ -21,7 +21,7 @@
 
 
 #include <algorithm>
-#include "S2TDataSet.h"
+#include "S2TDataset.h"
 
 using namespace nts;
 

@@ -32,7 +32,9 @@ namespace s2t
     }
     S2TModel::~S2TModel()
     {
-
+        delete encoder;
+        delete decoder;
+        delete outputLayer;
     }
 
     /* return a list to keep the configurations (interger) */

@@ -189,7 +189,7 @@ namespace s2t
         LoadFloat("nospeechthreshold", &noSpeechThreshold, 0.6);
         LoadFloat("logprobthreshold", &logProbThreshold, -1.0);
         LoadFloat("compratiothreshold", &compRatioThreshold, 2.4);
-        LoadBool("notimeStamps", &withoutTimeStamps, FALSE);
+        LoadBool("notimeStamps", &withoutTimeStamps, false);
 
     }
 

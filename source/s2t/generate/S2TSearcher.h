@@ -87,6 +87,49 @@ namespace s2t {
 
     class S2TPredictor : public Predictor
     {
+    private:
+        /* pointer to the transformer model */
+        S2TModel* m;
+
+        /* current state */
+        StateBundle* s;
+
+        /* array of the end symbols */
+        int* endSymbols;
+
+        /* number of the end symbols */
+        int endSymbolNum;
+
+        /* start symbol */
+        int* startSymbols;
+
+        /* number of the start symbols */
+        int startSymbolNum;
+
+        /* suppress symbol */
+        int* suppressSymbols;
+
+        /* number of the suppress symbols */
+        int suppressSymbolNum;
+
+    public:
+
+        S2TPredictor();
+
+        ~S2TPredictor();
+
+        void Init(int* endS, int endN, int* startS, int startN, int* suppS, int suppN);
+
+        void Read(S2TModel* model, StateBundle* state);
+
+        /* create an initial state */
+        void Create(const XTensor* input, int beamSize, StateBundle* state);
+
+        void Predict(StateBundle* next, XTensor& aliveState, XTensor& encoding,
+            XTensor& inputEnc, XTensor& paddingEnc, int batchSize, bool isStart,
+            XTensor& reorderState, bool needReorder, int nstep);
+
+        XTensor Suppress(XTensor& input);
 
     };
 
@@ -162,8 +205,17 @@ namespace s2t {
         /* initialize the suppress symbols */
         void InitSuppressSymbols(S2TConfig& config, int* tokens = NULL, const int num = 0);
 
+        /* preparation */
+        void Prepare(int myBatchSize, int myBeamSize);
+
+        void Collect(StateBundle* beam);
+
+        void FillHeap(StateBundle* beam);
+
+        void Dump(IntList** output, XTensor* score);
+
         /* search for the most promising states */
-        void Search(S2TModel* model, XTensor& input, XTensor& padding, IntList** output, XTensor& score);
+        void Search(S2TModel* model, XTensor& input, XTensor& padding, IntList** outputs, XTensor& score);
     };
 
 
