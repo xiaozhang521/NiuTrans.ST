@@ -122,14 +122,14 @@ namespace s2t
                 tokens += "\n";           
         }
 
-        /*ofstream file(config->inference.outputFN);
+        ofstream file(config->inference.outputFN);
         if (!file.is_open()) {
             std::cerr << "Failed to open the file." << std::endl;
         }
         else {
             file << tokens;
             file.close();
-        }*/
+        }
         
 
         if (isSingle) {
