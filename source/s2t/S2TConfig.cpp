@@ -184,13 +184,29 @@ namespace s2t
     void WhisperDecConig::Load(int argsNum, const char** args) {
         Create(argsNum, args);
         LoadString("task", task, "transcribe");
-        LoadString("lang", language, "en");
+        LoadString("lang", language.language, "en");
         LoadFloat("temperature", &temperature, 0.0);
         LoadFloat("nospeechthreshold", &noSpeechThreshold, 0.6);
         LoadFloat("logprobthreshold", &logProbThreshold, -1.0);
         LoadFloat("compratiothreshold", &compRatioThreshold, 2.4);
         LoadBool("notimeStamps", &withoutTimeStamps, false);
+        InitLanguageToken();
+    }
 
+    void WhisperDecConig::InitLanguageToken() 
+    {
+        if (strcmp(language.language, "en") == 0) {
+            std::cout << "Language:  English" << std::endl;
+            language.languageToken = 50259;
+        }
+        else if (strcmp(language.language, "zh") == 0) {
+            std::cout << "Language:  Chinese" << std::endl;
+            language.languageToken = 50260;
+        }
+        else {
+            language.languageToken = 50259;
+            std::cout << "Unknown Language: " << language.language << ", Decode in English" << std::endl;
+        }
     }
 
 } /* end of the s2r namespace */

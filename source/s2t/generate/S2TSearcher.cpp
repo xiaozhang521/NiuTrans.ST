@@ -81,8 +81,7 @@ namespace s2t {
 
 	void S2TGreedySearch::InitStartSymbols(S2TConfig& config)
 	{
-		CheckNTErrors(strcmp(config.whisperdec.language, "") != 0, "Invalid language tag");
-		startSymbols[startSymbolNum++] = 50259; // en 50259
+		startSymbols[startSymbolNum++] = config.whisperdec.language.languageToken; // en 50259
 		startSymbols[startSymbolNum++] = 50359;
 		startSymbols[startSymbolNum++] = 50363; // notimestamps
 	}
@@ -372,8 +371,7 @@ namespace s2t {
 
 	void S2TBeamSearch::InitStartSymbols(S2TConfig& config)
 	{
-		CheckNTErrors(strcmp(config.whisperdec.language, "") != 0, "Invalid language tag");
-		startSymbols[startSymbolNum++] = 50259; // en 50259
+		startSymbols[startSymbolNum++] = config.whisperdec.language.languageToken; // en 50259
 		startSymbols[startSymbolNum++] = 50359;
 		startSymbols[startSymbolNum++] = 50363; // notimestamps
 	}
