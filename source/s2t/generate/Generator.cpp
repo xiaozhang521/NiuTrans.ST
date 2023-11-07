@@ -118,7 +118,7 @@ namespace s2t
                 if (j < outputs[i]->count - 1)
                     tokens += " ";
             }
-            if (i < batchSize - 1)
+            if (i < batchSize)
                 tokens += "\n";           
         }
 
