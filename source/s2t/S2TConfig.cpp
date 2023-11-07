@@ -75,7 +75,7 @@ namespace s2t
         whisperdec.Load(argsNum, (const char**)args);
         // translation = (TranslationConfig)inference;
 
-        showConfig();
+        // showConfig();
 
         for (int i = 0; i < MAX(argc, argsNum); i++)
             delete[] args[i];
