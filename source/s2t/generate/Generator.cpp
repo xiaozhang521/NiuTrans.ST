@@ -122,7 +122,7 @@ namespace s2t
                 tokens += "\n";           
         }
 
-        ofstream file(config->inference.outputFN);
+        ofstream file(config->inference.outputFN, std::ios::app);
         if (!file.is_open()) {
             std::cerr << "Failed to open the file." << std::endl;
         }
