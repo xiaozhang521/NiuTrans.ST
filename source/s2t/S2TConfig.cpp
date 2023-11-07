@@ -65,7 +65,7 @@ namespace s2t
             argsNum = LoadFromFile(configFN, args);
 
 
-        showConfig();
+        // showConfig();
         /* parse configuration in args */
         model.Load(argsNum, (const char **)args);
         s2tmodel.Load(argsNum, (const char**)args);
