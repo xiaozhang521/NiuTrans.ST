@@ -249,6 +249,7 @@ namespace s2t {
 
         FbankOptions opts_;
         float logEnergyFloor_;
+        XTensor filter;
         std::map<float, MelBanks*> mel_banks_;  // float is VTLN coefficient.
         SplitRadixRealFft<float>* srfft_;
         // Disallow assignment.

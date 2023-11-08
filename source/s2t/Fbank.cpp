@@ -63,6 +63,54 @@ namespace s2t {
     FbankComputer::FbankComputer(const FbankOptions& opts) :
         srfft_(NULL) {
         opts_ = opts;
+        
+        
+        if (opts_.melOpts.customFilter != "") {
+            filter.order = 2;
+            int filterDimSize[] = { opts_.melOpts.numBins , opts_.frameOpts.WindowSize() / 2 + 1 };
+            filter.Resize(2, filterDimSize);
+            std::ifstream inputFile(opts_.melOpts.customFilter);
+            ASSERT(inputFile.is_open());
+            std::vector<std::vector<std::string>> csvData;
+            std::string line;
+
+            while (std::getline(inputFile, line)) {
+                std::vector<std::string> row;
+                std::istringstream lineStream(line);
+                std::string cell;
+
+                while (std::getline(lineStream, cell, ',')) {
+                    row.push_back(cell);
+                }
+
+                csvData.push_back(row);
+            }
+
+            inputFile.close();
+            int rowCount = 0;
+
+            for (const auto& row : csvData) {
+                int column = 0;
+
+                for (const std::string& cell : row) {
+
+                    try {
+                        float value = std::stod(cell);
+                        filter.Set2D(value, rowCount, column);
+                    }
+                    catch (const std::invalid_argument& e) {
+                        std::cerr << "Invalid number format: " << cell << std::endl;
+                    }
+                    column++;
+
+                }
+
+                std::cout << std::endl;
+                rowCount++;
+            }
+
+        }
+        
         if (opts.energyFloor > 0.0)
             logEnergyFloor_ = logf(opts.energyFloor);
 
@@ -79,6 +127,7 @@ namespace s2t {
         opts_(other.opts_), logEnergyFloor_(other.logEnergyFloor_),
         mel_banks_(other.mel_banks_), srfft_(NULL) {
         opts_ = other.opts_;
+        filter = other.filter;
         for (std::map<float, MelBanks*>::iterator iter = mel_banks_.begin();
             iter != mel_banks_.end();
             ++iter)
@@ -166,54 +215,8 @@ namespace s2t {
         mel_energies.SetData(feature.GetCell(&startIndex, 1), opts_.melOpts.numBins, mel_offset);
 
         // Sum with mel fiterbanks over the power spectrum
-        if (opts_.melOpts.numBins == 80 && opts_.melOpts.customFilter != ""){
-            XTensor filter;
-            filter.order = 2;
-            int filterDimSize[] = { opts_.melOpts.numBins , dimSize[0]};
-            filter.Resize(2, filterDimSize);
-            std::ifstream inputFile(opts_.melOpts.customFilter);
-            ASSERT(inputFile.is_open());
-            std::vector<std::vector<std::string>> csvData;
-            std::string line;
-
-            while (std::getline(inputFile, line)) {
-                std::vector<std::string> row;
-                std::istringstream lineStream(line);
-                std::string cell;
-
-                while (std::getline(lineStream, cell, ',')) {
-                    row.push_back(cell);
-                }
-
-                csvData.push_back(row);
-            }
-
-            inputFile.close();
-            int rowCount = 0;
-
-            for (const auto& row : csvData) {
-                int column = 0;
-
-                for (const std::string& cell : row) {
-
-                    try {
-                        float value = std::stod(cell);
-                        filter.Set2D(value, rowCount, column);
-                        //std::cout << value << " ";
-                    }
-                    catch (const std::invalid_argument& e) {
-                        std::cerr << "Invalid number format: " << cell << std::endl;
-                    }
-                    column++;
-
-                }
-
-                std::cout << std::endl;
-                rowCount++;
-            }
+        if (opts_.melOpts.customFilter != ""){
             mel_energies = MMul(filter, X_NOTRANS, power_spectrum, X_NOTRANS);
-            //mel_energies = filter.operator*(power_spectrum);
-
         }
         else{
             mel_banks.Compute(power_spectrum, &mel_energies);
