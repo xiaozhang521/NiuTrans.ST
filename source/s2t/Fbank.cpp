@@ -104,8 +104,6 @@ namespace s2t {
                     column++;
 
                 }
-
-                std::cout << std::endl;
                 rowCount++;
             }
 

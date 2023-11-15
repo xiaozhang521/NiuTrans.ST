@@ -169,7 +169,7 @@ namespace s2t
         //std::cout << longestSample->audioPath << endl;
         //longestSample->audioSeq->Dump();
         while (!batchLoader.IsEmpty()) {
-            batchLoader.GetBatchSimple(&inputs, &info);
+            // batchLoader.GetBatchSimple(&inputs, &info);
             //batchEnc.Dump();
             //DecodingBatch(batchEnc, paddingEnc, indices);
 
