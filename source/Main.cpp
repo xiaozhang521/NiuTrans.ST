@@ -20,14 +20,17 @@
  */
 
 #include <iostream>
-
-#include "./s2t/S2TConfig.h"
+#include "./nmt/Config.h"
 #include "./nmt/train/Trainer.h"
 #include "./nmt/translate/Translator.h"
 #include "./s2t/S2TModel.h"
 #include "./s2t/generate/Generator.h"
 #include "./s2t/S2TVocab.h"
 #include "niutensor/tensor/function/GELU.h"
+
+#include "./s2t/WaveLoader.h"
+#include "./s2t/FeatureWindow.h"
+#include "./s2t/Fbank.h"
 
 
 using namespace nmt;
@@ -36,66 +39,44 @@ using namespace nts;
 
 int main(int argc, const char** argv)
 {
-    std::ios_base::sync_with_stdio(false);
-    std::cin.tie(NULL);
 
+    //--------------------------Load Wave--------------------------
+    /*
+    ifstream inFile("C:\\Code\\VS\\NiuTrans.ST\\test.wav", ios::in | ios::binary);
+    if (!inFile) {
+        cout << "error no file" << endl;
+        return 0;
+    }
+    class WaveInfo wave;
+    class WaveData data;
+    data.Read(inFile);
+    struct FrameExtractionOptions opt;
+    struct FbankOptions fOpts;
+    class FbankComputer computer(fOpts);
+    class OfflineFeatureTpl<FbankComputer> oft(computer);
+    XTensor out;
+    oft.ComputeFeatures(data.Data(), data.SampFreq(), 1.0, &out);
+    FILE* outputFile = fopen("C:\\Code\\VS\\NiuTrans.ST\\output.txt", "w");
+    out.Dump(outputFile);
+    fclose(outputFile);
+    */
+    //--------------------------Load Wave--------------------------
+    
     if (argc == 0)
         return 1;
-    /* load configurations */
+    // load configurations 
     S2TConfig config(argc, argv);
     S2TModel model;
     model.InitModel(config);
-    //config.showConfig();
 
-    //model.TestDumpParams(&model.encoder->selfAtts[1].weightQ);
-
-    //cout << "Tgt Vocab File: " << config.common.tgtVocabFN << endl;
-    //S2TVocab vocab;
-    //vocab.Load(config.common.tgtVocabFN);
-    // vocab.ShowVocab();
-    //vocab.Test();
+    //--------------------------Load Wave--------------------------
+    struct FbankOptions fOpts(config);
+    class FbankComputer computer(fOpts);
+    class OfflineFeatureTpl<FbankComputer> oft(computer);
+    //--------------------------Load Wave--------------------------
 
     Generator generator;
-    generator.Init(config, model);
+    generator.Init(config, model, oft);
     generator.Generate();
-    //generator.TestInference();
-
-
-    //generator.generate(); 
-    // 
-    /*****************************Old entrance******************************/
-    //srand(config.common.seed);
-
-    ///* training */
-    //if (strcmp(config.training.trainFN, "") != 0) {
-
-    //    NMTModel model;
-    //    model.InitModel(config);
-
-    //    Trainer trainer;
-    //    trainer.Init(config, model);
-    //    trainer.Run();
-    //}
-
-    ///* translation */
-    //else if (strcmp(config.translation.inputFN, "") != 0) {
-
-    //    /* disable gradient flow */
-    //    DISABLE_GRAD;
-
-    //    NMTModel model;
-    //    model.InitModel(config);
-
-    //    Translator translator;
-    //    translator.Init(config, model);
-    //    translator.Translate();
-    //}
-    //else {
-    //    fprintf(stderr, "Thanks for using NiuTrans.NMT! This is an effcient\n");
-    //    fprintf(stderr, "neural machine translation system. \n\n");
-    //    fprintf(stderr, "   Run this program with \"-train\" for training!\n");
-    //    fprintf(stderr, "Or run this program with \"-input\" for translation!\n");
-    //}
-
     return 0;
 }

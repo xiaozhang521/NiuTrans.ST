@@ -1,0 +1,2 @@
+id	audio	frames	tgt_text
+test1	../tools/data/batch_mel_segment_test.wav.bin	3000	And so, my fellow Americans, ask not what your country can do for you, ask what you can do for your country.

@@ -110,6 +110,13 @@ XTensor IsZero(const XTensor &a);
 /* if source entry is zero, set target entry to be one, otherwise zero */
 void IsZero(const XTensor &a, XTensor & b);
 
+
+void _Log10(const XTensor* a, XTensor* b);
+
+void _Log10Me(XTensor* a);
+
+void Log10Me(XTensor& a);
+
 /* set every entry to its logarithm value */
 void _Log(const XTensor * a, XTensor * b);
 /* set every entry to its logarithm value (do it on site)
