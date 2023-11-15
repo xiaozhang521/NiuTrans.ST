@@ -326,7 +326,11 @@ def main(audios, output, save_path, vad_mode, duration:float =30.0):
 
                 saveFbankBinary(mel_segment, 80, os.path.join(save_path, a_name))
                 # output_f.write("\t".join([ids, os.path.join(save_path, a_name), str(frames), transcribe]) + "\n")
-                output_f.write("\t".join([str(index), os.path.join(save_path, a_name), str(mel_segment.shape[1]), transcribe]) + "\n")
+                if transcribe is not None:
+
+                    output_f.write("\t".join([str(index), os.path.join(save_path, a_name), str(mel_segment.shape[1]), transcribe]) + "\n")
+                else:
+                    output_f.write("\t".join([str(index), os.path.join(save_path, a_name), str(mel_segment.shape[1]), ""]) + "\n")
                 
     
     

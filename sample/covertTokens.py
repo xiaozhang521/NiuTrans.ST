@@ -56,24 +56,22 @@ def main():
         py.append(res.strip().lower()[:-1])
 
 
-
-
-    hy=[]
-    with open("/home/gaochenghao/data/NiuTransData/data/test-vad.tsv",'r') as f_h:
-        lines=f_h.readlines()[1:]
-        for line in lines:
-            h_txt=line.strip().split("\t")[3]
-            hy.append(h_txt.strip().lower())
-
-
-    error = wer(hy, py)
-    print("-"*100)
-    print("label:")
-    print(hy)
-    print("-"*100)
-    print("predict:")
-    print(py)
-    print("wer:{}".format(error))
+    # hy=[]
+    # with open("/home/gaochenghao/data/NiuTransData/data/test-vad.tsv",'r') as f_h:
+    #     lines=f_h.readlines()[1:]
+    #     for line in lines:
+    #         h_txt=line.strip().split("\t")[3]
+    #         hy.append(h_txt.strip().lower())
+    #
+    # if len()
+    # error = wer(hy, py)
+    # print("-"*100)
+    # print("label:")
+    # print(hy)
+    # print("-"*100)
+    # print("predict:")
+    # print(py)
+    # print("wer:{}".format(error))
 
 
 if __name__ == "__main__":

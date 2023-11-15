@@ -29,6 +29,7 @@
 #include "./s2t/S2TVocab.h"
 #include "niutensor/tensor/function/GELU.h"
 
+#include <ctime>
 
 using namespace nmt;
 using namespace s2t;
@@ -55,10 +56,17 @@ int main(int argc, const char** argv)
     // vocab.ShowVocab();
     //vocab.Test();
 
+    const clock_t begin_time = clock();
     Generator generator;
     generator.Init(config, model);
-    generator.Generate();
-    //generator.TestInference();
+    for (int i = 0; i < 10; ++i) {
+
+        generator.Generate();
+        //generator.TestInference();
+    }
+    cudaThreadSynchronize();
+    float time_consume = float(clock( ) - begin_time)/1000.0;  //最小精度到ms
+    printf("model decode time: %.2f ms\n",time_consume);
 
 
     //generator.generate(); 
