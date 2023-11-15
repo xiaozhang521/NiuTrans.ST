@@ -923,3 +923,9 @@ NiuTrans.NMT.dir/Debug/S2TEncoder.obj
 /whisper_tiny_niutrans_s2t.bin
 NiuTrans.NMT.dir/Debug/S2TVocab.obj
 NiuTrans.NMT.dir/Debug/S2TSearcher.obj
+/bin/Debug
+/out/build/bin
+/source/test.wav
+/mel.csv
+/output.txt
+/test.wav
