@@ -39,6 +39,11 @@ namespace s2t
 
     #define MAX_NAME_LEN 20
 
+    union LanguageUnion {
+        int languageToken;
+        char language[MAX_NAME_LEN];
+    };
+
     /* model configuration */
     class S2TModelConfig : public XConfig
     {
@@ -62,7 +67,7 @@ namespace s2t
     public:
 
         char task[MAX_NAME_LEN];
-        char language[MAX_NAME_LEN];     // zh
+        LanguageUnion language;     // zh
         float temperature;
         float noSpeechThreshold;
         float logProbThreshold;
@@ -72,6 +77,8 @@ namespace s2t
     public:
         /* load configuration from the command */
         void Load(int argsNum, const char** args);
+
+        void InitLanguageToken();
 
     };
 

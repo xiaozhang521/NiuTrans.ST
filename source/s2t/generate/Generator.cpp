@@ -118,18 +118,18 @@ namespace s2t
                 if (j < outputs[i]->count - 1)
                     tokens += " ";
             }
-            if (i < batchSize - 1)
+            if (i < batchSize)
                 tokens += "\n";           
         }
 
-        /*ofstream file(config->inference.outputFN);
+        ofstream file(config->inference.outputFN, std::ios::app);
         if (!file.is_open()) {
             std::cerr << "Failed to open the file." << std::endl;
         }
         else {
             file << tokens;
             file.close();
-        }*/
+        }
         
 
         if (isSingle) {
