@@ -934,3 +934,5 @@ bin/Debug/NiuTrans.ST.exp
 bin/Debug/NiuTrans.ST.lib
 bin/Debug/NiuTrans.ST.pdb
 output.txt
+/bin/Debug
+/out/build/bin
