@@ -422,9 +422,11 @@ namespace s2t
             }
         }
 
-        for (int i = 0; i < params.Size(); i++)
+        for (int i = 0; i < params.Size(); i++) {
             params[i]->BinaryRead(file);
-
+            params[i]->enableGrad = false;
+        }
+            
         double elapsed = GetClockSec() - startT;
         LOG("model loaded (took %.1fs)", elapsed);
 
