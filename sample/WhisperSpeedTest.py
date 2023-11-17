@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
 
 
-    model = whisper.load_model("tiny")
+    model = whisper.load_model("large-v2") # tiny large-v2
 
     # load audio and pad/trim it to fit 30 seconds
     audio = load_audio("/data/zhangyuhao/librispeech/LibriSpeech/test-clean/672/122797/672-122797-0000.flac")
@@ -64,12 +64,12 @@ if __name__ == '__main__':
     # detect the spoken language
     _, probs = model.detect_language(mel)
     print(f"Detected language: {max(probs, key=probs.get)}")
-    options = whisper.DecodingOptions()
+    options = whisper.DecodingOptions(beam_size=2)
 
     # decode the audio
     time_start = time.time()
     torch.cuda.synchronize()
-    for i in range(10):
+    for i in range(1):
         result = whisper.decode(model, mel, options)
         # print the recognized text
         print(result.text)

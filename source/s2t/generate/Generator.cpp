@@ -119,7 +119,7 @@ namespace s2t
                     tokens += " ";
             }
             if (i < batchSize)
-                tokens += "\n";           
+                tokens += "\n";
         }
 
         ofstream file(config->inference.outputFN, std::ios::app);
@@ -130,21 +130,21 @@ namespace s2t
             file << tokens;
             file.close();
         }
-        
+
 
         if (isSingle) {
             /*TODO*/
             batchEnc = Squeeze(batchEnc);
         }
-            
+
         return batchEnc;
-            
+
     }
 
     bool Generator::Generate()
     {
         batchLoader.Init(*config, false);
-        
+
         /* inputs */
         XTensor batchEnc;
         XTensor paddingEnc;
@@ -185,7 +185,17 @@ namespace s2t
                 CheckNTErrors(false, "Invalid batchEnc size\n");
             paddingEncForAudio = paddingEncForAudio * 0 + 1;
 
-            DecodingBatch(batchEnc, paddingEncForAudio, indices);
+
+            // decoding speed test
+            const clock_t begin_time = clock();
+            for (int i = 0; i < 20; ++i) {
+                DecodingBatch(batchEnc, paddingEncForAudio, indices);
+            }
+            cudaThreadSynchronize();
+            float time_consume = float(clock( ) - begin_time)/1000.0;  //最小精度到ms
+            printf("model decode time: %.2f ms\n",time_consume);
+
+
         }
 
         return true;
@@ -194,7 +204,7 @@ namespace s2t
 
     bool Generator::TestInference()         // not work for batch
     {
-        
+
         // Pad audio 30s at right
 
         // extract fbank feature
@@ -213,7 +223,7 @@ namespace s2t
         paddingEnc = paddingEnc + 1;
 
         //DecodingBatch(test_audio_pad, paddingEnc);
-            
+
         return 1;
     }
 

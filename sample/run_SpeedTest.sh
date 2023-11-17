@@ -25,8 +25,8 @@ output=${DATA}/output/output.txt
 vocab=${DATA}/model/vocab_whisper_utf
 token=${output}
 
-model=${DATA}/model/whisper_tiny_niutrans_s2t.bin
-#model=${DATA}/model/whisper_large-v2_niutrans_s2t.bin
+#model=${DATA}/model/whisper_tiny_niutrans_s2t.bin
+model=${DATA}/model/whisper_large-v2_niutrans_s2t.bin
 
 timestamp_s=$(date "+%s%N")
 

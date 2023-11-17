@@ -1,7 +1,9 @@
 ## 部署
+
 `cuda:`11.7,
 `cudnn:` 8.9.5,
 `gcc:`8.5
+
 ```sh
 # 编译环境变量
 # gcc                                                                                   
@@ -40,6 +42,7 @@ cmake .. -DUSE_CUDA=ON -DUSE_CUDNN=ON \
 -DCUDA_TOOLKIT_ROOT="/home/gaochenghao/tools/cuda-11.7"
 make -j 32
 ```
+
 ## 运行
 
 ``` sh
@@ -49,29 +52,40 @@ make -j 32
 
 ## 速度测试
 
+- `测试脚本 (Whisper)` : sample/WhisperSpeedTest.py
+- `测试脚本 (Our)` : sample/run_SpeedTest.sh
 - `测试音频`: /data/zhangyuhao/librispeech/LibriSpeech/test-clean/672/122797/672-122797-0000.flac
 - `时常`: 4s
 - `音频内容`: Out in the woods to the nice little fir tree.
 - `前处理`: pad到30s的
-- `测试脚本 (Whisper)` : sample/WhisperSpeedTest.py
-- `测试脚本 (Our)` : sample/run_SpeedTest.sh
+- `batch`: 1, `beam`: 1
+
+**循环1次耗时 (ms)**
+
+| 模型               | tiny | large |
+|------------------|------|-------|
+| Whisper          | 222  | 667   |
+| Our              | 1340 | 1935  |
+| Whisper (beam=2) | 235  | 764   |
+| Our (beam=2)     | 1345 | 1924  |
 
 **循环10次耗时 (ms)**
 
-| 模型      | tiny | base | large |
-|---------|------|------|-------|
-| Whisper | 850  |      |       |
-| Our     | 1893 |      |       |
-
+| 模型               | tiny | large |
+|------------------|------|-------|
+| Whisper          | 870  | 5703  |
+| Our              | 1688 | 7391  |
+| Whisper (beam=2) | 977  | 6718  |
+| Our (beam=2)     | 1647 | 7583  |
 
 **循环20次耗时 (ms)**
 
-| 模型      | tiny | base | large |
-|---------|------|------|-------|
-| Whisper | 1573 |      |       |
-| Our     | 2456 |      |       |
-
-
+| 模型               | tiny | large |
+|------------------|------|-------|
+| Whisper          | 1588 | 11317 |
+| Our              | 2085 | 13522 |
+| Whisper (beam=2) | 1795 | 13136 |
+| Our (beam=2)     | 1994 | 13932 |
 
 ## 报错
 
