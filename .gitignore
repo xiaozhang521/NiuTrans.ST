@@ -923,3 +923,14 @@ NiuTrans.NMT.dir/Debug/S2TEncoder.obj
 /whisper_tiny_niutrans_s2t.bin
 NiuTrans.NMT.dir/Debug/S2TVocab.obj
 NiuTrans.NMT.dir/Debug/S2TSearcher.obj
+test.tsv
+test.wav
+test.wav_1.bin
+test_config_file.txt
+vocab_whisper_utf
+mel.csv
+bin/Debug/NiuTrans.ST.exe
+bin/Debug/NiuTrans.ST.exp
+bin/Debug/NiuTrans.ST.lib
+bin/Debug/NiuTrans.ST.pdb
+output.txt

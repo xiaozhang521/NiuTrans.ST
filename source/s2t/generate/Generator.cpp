@@ -44,14 +44,22 @@ namespace s2t
             delete (S2TGreedySearch*)seacher;
         seacher = nullptr;
         delete outputBuf;
+        if (oft)
+            delete oft;
     }
 
     /* initialize the model */
-    void Generator::Init(S2TConfig& myConfig, S2TModel& myModel)
+    void Generator::Init(S2TConfig& myConfig, S2TModel& myModel, bool offline)
     {
         cout << "----- Generator Init -----" << endl;
         model = &myModel;
         config = &myConfig;
+        struct FbankOptions fOpts(myConfig);
+        class FbankComputer computer(fOpts);
+        if (offline)
+            oft = NULL;
+        else
+            oft = new OfflineFeatureTpl<FbankComputer>(computer);
 
         if (config->inference.beamSize > 1) {
             LOG("Inferencing with beam search (beam=%d, batchSize= %d sents | %d tokens, lenAlpha=%.2f, maxLenAlpha=%.2f) ",
@@ -143,38 +151,51 @@ namespace s2t
 
     bool Generator::Generate()
     {
-        batchLoader.Init(*config, false);
-        
+
         /* inputs */
         XTensor batchEnc;
-        XTensor paddingEnc;
+        if (oft)
+        {
+            oft->Read();
+            /*TODO !!!*/
+            //oft->convertType();ffmepg
+            oft->ComputeFeatures(oft->Data().Data(), oft->Data().SampFreq(), 1.0, &batchEnc);
+            batchEnc.FlushToDevice(config->common.devID);
+            LOG("Filter-bank features processing complete");
 
-        /* sentence information */
-        XList info;
-        XList inputs;
-        int wordCount;
-        IntList indices;
-        inputs.Add(&batchEnc);
-        inputs.Add(&paddingEnc);
-        info.Add(&wordCount);
-        info.Add(&indices);
-        //TripleSample* longestSample = (TripleSample*)(batchLoader.buf->Get(0));
-        //std::cout << longestSample->audioPath << endl;
-        //longestSample->audioSeq->Dump();
-        while (!batchLoader.IsEmpty()) {
-            batchLoader.GetBatchSimple(&inputs, &info);
-            //batchEnc.Dump();
-            //DecodingBatch(batchEnc, paddingEnc, indices);
+            // Batch 1
+            IntList indices;
+            indices.Add(0);
 
-            /*TODO wrong size*/
-            //batchLoader.GetBatchSimple(&inputs, &info);
-            // batchEnc.Dump(stderr, NULL, -1);
+            XTensor paddingEncForAudio;
+            InitTensor1D(&paddingEncForAudio, int(batchEnc.GetDim(0) / 2), X_FLOAT, config->common.devID);
 
-            //InitTensor3D(&batchEnc, 1, 3000, 80, X_FLOAT, config->common.devID);    // b * l * f
-            //FILE* audioFile = fopen("../tools/data/batch.bin.using", "rb");
-            //if (audioFile) {
-            //    batchEnc.BinaryRead(audioFile);
-            //}
+            paddingEncForAudio = paddingEncForAudio * 0 + 1;
+
+            DecodingBatch(batchEnc, paddingEncForAudio, indices);
+        }
+        else
+        {
+            batchLoader.Init(*config, false);
+
+            XTensor paddingEnc;
+            /* sentence information */
+            XList info;
+            XList inputs;
+            int wordCount;
+            IntList indices;
+            inputs.Add(&batchEnc);
+            inputs.Add(&paddingEnc);
+            info.Add(&wordCount);
+            info.Add(&indices);
+            //TripleSample* longestSample = (TripleSample*)(batchLoader.buf->Get(0));
+            //std::cout << longestSample->audioPath << endl;
+            //longestSample->audioSeq->Dump();
+            while (!batchLoader.IsEmpty()) {
+                batchLoader.GetBatchSimple(&inputs, &info);
+                //batchEnc.Dump();
+                //DecodingBatch(batchEnc, paddingEnc, indices);
+
 
             XTensor paddingEncForAudio;
             if (batchEnc.order == 3)
@@ -186,6 +207,7 @@ namespace s2t
             paddingEncForAudio = paddingEncForAudio * 0 + 1;
 
             DecodingBatch(batchEnc, paddingEncForAudio, indices);
+            }
         }
 
         return true;

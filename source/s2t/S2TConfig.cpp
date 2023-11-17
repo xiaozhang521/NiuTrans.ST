@@ -73,6 +73,7 @@ namespace s2t
         training.Load(argsNum, (const char **)args);
         inference.Load(argsNum, (const char **)args);
         whisperdec.Load(argsNum, (const char**)args);
+        extractor.Load(argsNum, (const char**)args);
         // translation = (TranslationConfig)inference;
 
         // showConfig();
@@ -209,4 +210,43 @@ namespace s2t
         }
     }
 
-} /* end of the s2r namespace */
+    void ExtractionConfig::Load(int argsNum, const char** args) {
+        Create(argsNum, args);
+
+        LoadBool("useEnergy", &useEnergy, FALSE);
+        LoadFloat("energyFloor", &energyFloor, 0.0);
+        LoadBool("rawEnergy", &rawEnergy, TRUE);
+        LoadBool("htkCompat", &htkCompat, FALSE);
+        LoadBool("useLogFbank", &useLogFbank, TRUE);
+        LoadBool("usePower", &usePower, TRUE);
+        LoadBool("oneside", &oneSide, FALSE);
+        LoadString("inputAudio", inputAudio, "");
+
+        LoadFloat("sampFreq", &sampFreq, 16000.0);
+        LoadFloat("frameShiftMs", &frameShiftMs, 10.0);
+        LoadFloat("frameLengthMs", &frameLengthMs, 25.0);
+        LoadFloat("chunkLengthMs", &chunkLengthMs, 30000.0);
+        LoadFloat("dither", &dither, 0.0);
+        LoadFloat("preemphCoeff", &preemphCoeff, 0.0);
+        LoadBool("removeDcOffset", &removeDcOffset, FALSE);
+        LoadString("windowType", windowType, "hanning_periodic");
+        LoadBool("roundToPowerOfTwo", &roundToPowerOfTwo, FALSE);
+        LoadFloat("blackmanCoeff", &blackmanCoeff, 0.42);
+        LoadBool("snipEdges", &snipEdges, TRUE);
+        LoadBool("allowDownsample", &allowDownsample, FALSE);
+        LoadBool("allowUpsample", &allowUpsample, FALSE);
+        LoadInt("maxFeatureVectors", &maxFeatureVectors, -1);
+        LoadInt("torchPaddingLength", &torchPaddingLength, 200);
+        LoadString("padMod", padMod, "reflect");
+
+        LoadInt("numBins", &numBins, 80);
+        LoadFloat("lowFreq", &lowFreq, 20.0);
+        LoadFloat("highFreq", &highFreq, 0.0);
+        LoadFloat("vtlnLow", &vtlnLow, 100.0);
+        LoadFloat("vtlnHigh", &vtlnHigh, -500.0);
+        LoadBool("debugMel", &debugMel, FALSE);
+        LoadBool("htkMode", &htkMode, FALSE);
+        LoadString("customFilter", customFilter, "../mel.csv");
+    }
+
+} /* end of the s2t namespace */

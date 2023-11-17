@@ -89,11 +89,58 @@ namespace s2t
 
     };
 
+    /* Feature extraction config*/
+    class ExtractionConfig : public XConfig {
+    public:
+
+        bool useEnergy;
+        float energyFloor;
+        bool rawEnergy;
+        bool htkCompat;
+        bool useLogFbank;
+        bool usePower;
+        bool oneSide;
+        char inputAudio[MAX_NAME_LEN];
+
+        float sampFreq;
+        float frameShiftMs;
+        float frameLengthMs; 
+        float chunkLengthMs;
+        float dither;  
+        float preemphCoeff;
+        bool removeDcOffset;
+        char windowType[MAX_NAME_LEN]; 
+        bool roundToPowerOfTwo;
+        float blackmanCoeff;
+        bool snipEdges;
+        bool allowDownsample;
+        bool allowUpsample;
+        int maxFeatureVectors;
+        int torchPaddingLength; 
+        char padMod[MAX_NAME_LEN];
+
+        INT32 numBins;
+        float lowFreq;
+        float highFreq;
+        float vtlnLow; 
+        float vtlnHigh; 
+        bool debugMel;
+        bool htkMode;
+        char customFilter[MAX_NAME_LEN];
+
+    public:
+        void Load(int argsNum, const char** args);
+
+    };
 
     /* configuration of the s2t project  */
     class S2TConfig : public NMTConfig
     {
     public:
+
+        /* Feature extraction config*/
+        ExtractionConfig extractor;
+
         /* model configuration */
         S2TModelConfig s2tmodel;
 

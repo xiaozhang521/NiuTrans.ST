@@ -29,6 +29,9 @@
 #include "./s2t/S2TVocab.h"
 #include "niutensor/tensor/function/GELU.h"
 
+#include "./s2t/WaveLoader.h"
+#include "./s2t/FeatureWindow.h"
+#include "./s2t/Fbank.h"
 
 using namespace nmt;
 using namespace s2t;
@@ -56,13 +59,30 @@ int main(int argc, const char** argv)
     //vocab.Test();
 
     Generator generator;
-    generator.Init(config, model);
+    //std::cout << (strlen(config.inference.inputFN) == 0) << (strcmp(config.extractor.inputAudio, "") == 0) << std::endl;
+    CheckNTErrors(strcmp(config.inference.inputFN, "") || strcmp(config.extractor.inputAudio,""),
+        "Giving input path to choose offline or input audio to choose online decoding");
+    // Choosing online inference with speech extractor
+    if (strlen(config.extractor.inputAudio) != 0)
+    {
+        //struct FbankOptions fOpts(config);
+        //class FbankComputer computer(fOpts);
+        //class OfflineFeatureTpl<FbankComputer> oft(computer);
+        generator.Init(config, model, false);
+    }
+    // Choosing offline inference with batch decoding
+    else if (strlen(config.inference.inputFN) != 0)
+    {
+        generator.Init(config, model);
+    }
+    else
+    {
+        CheckNTErrors((strlen(config.inference.inputFN) != 0 || strlen(config.extractor.inputAudio) != 0),
+            "Giving input path to choose offline or input audio to choose online decoding");
+    }
+
     generator.Generate();
-    //generator.TestInference();
 
-
-    //generator.generate(); 
-    // 
     /*****************************Old entrance******************************/
     //srand(config.common.seed);
 
