@@ -220,7 +220,8 @@ namespace s2t
         LoadBool("useLogFbank", &useLogFbank, TRUE);
         LoadBool("usePower", &usePower, TRUE);
         LoadBool("oneside", &oneSide, FALSE);
-        LoadString("inputAudio", inputAudio, "../test.wav");
+
+        LoadString("inputAudio", inputAudio, "");
 
         LoadFloat("sampFreq", &sampFreq, 16000.0);
         LoadFloat("frameShiftMs", &frameShiftMs, 10.0);

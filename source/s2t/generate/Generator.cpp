@@ -44,15 +44,22 @@ namespace s2t
             delete (S2TGreedySearch*)seacher;
         seacher = nullptr;
         delete outputBuf;
+        if (oft)
+            delete oft;
     }
 
     /* initialize the model */
-    void Generator::Init(S2TConfig& myConfig, S2TModel& myModel, OfflineFeatureTpl<FbankComputer>& myOft)
+    void Generator::Init(S2TConfig& myConfig, S2TModel& myModel, bool offline)
     {
         cout << "----- Generator Init -----" << endl;
         model = &myModel;
         config = &myConfig;
-        oft = &myOft;
+        struct FbankOptions fOpts(myConfig);
+        class FbankComputer computer(fOpts);
+        if (offline)
+            oft = NULL;
+        else
+            oft = new OfflineFeatureTpl<FbankComputer>(computer);
 
         if (config->inference.beamSize > 1) {
             LOG("Inferencing with beam search (beam=%d, batchSize= %d sents | %d tokens, lenAlpha=%.2f, maxLenAlpha=%.2f) ",
@@ -148,41 +155,45 @@ namespace s2t
         /* inputs */
         XTensor batchEnc;
 
-        oft->Read();
-        oft->ComputeFeatures(oft->Data().Data(), oft->Data().SampFreq(), 1.0, &batchEnc);
-        batchEnc = Transpose(batchEnc, 0, 1);
+        if (oft)
+        {
+            oft->Read();
+            /*TODO !!!*/
+            //oft->convertType();ffmepg
+            oft->ComputeFeatures(oft->Data().Data(), oft->Data().SampFreq(), 1.0, &batchEnc);
+            batchEnc.FlushToDevice(config->common.devID);
+            LOG("Filter-bank features processing complete");
 
-        batchLoader.Init(*config, false);
+            // Batch 1
+            IntList indices;
+            indices.Add(0);
 
-        XTensor paddingEnc;
+            XTensor paddingEncForAudio;
+            InitTensor1D(&paddingEncForAudio, int(batchEnc.GetDim(0) / 2), X_FLOAT, config->common.devID);
 
-        /* sentence information */
-        XList info;
-        XList inputs;
-        int wordCount;
-        IntList indices;
-        inputs.Add(&batchEnc);
-        inputs.Add(&paddingEnc);
-        info.Add(&wordCount);
-        info.Add(&indices);
-        //TripleSample* longestSample = (TripleSample*)(batchLoader.buf->Get(0));
-        //std::cout << longestSample->audioPath << endl;
-        //longestSample->audioSeq->Dump();
-        while (!batchLoader.IsEmpty()) {
-            // batchLoader.GetBatchSimple(&inputs, &info);
-            //batchEnc.Dump();
-            //DecodingBatch(batchEnc, paddingEnc, indices);
+            paddingEncForAudio = paddingEncForAudio * 0 + 1;
 
-            /*TODO wrong size*/
-            //batchLoader.GetBatchSimple(&inputs, &info);
-            // batchEnc.Dump(stderr, NULL, -1);
+            DecodingBatch(batchEnc, paddingEncForAudio, indices);
+        }
+        else
+        {
+            batchLoader.Init(*config, false);
 
-            //InitTensor3D(&batchEnc, 1, 3000, 80, X_FLOAT, config->common.devID);    // b * l * f
-            //FILE* audioFile = fopen("../tools/data/batch.bin.using", "rb");
-            //if (audioFile) {
-            //    batchEnc.BinaryRead(audioFile);
-            //}
-
+            XTensor paddingEnc;
+            /* sentence information */
+            XList info;
+            XList inputs;
+            int wordCount;
+            IntList indices;
+            inputs.Add(&batchEnc);
+            inputs.Add(&paddingEnc);
+            info.Add(&wordCount);
+            info.Add(&indices);
+            //TripleSample* longestSample = (TripleSample*)(batchLoader.buf->Get(0));
+            //std::cout << longestSample->audioPath << endl;
+            //longestSample->audioSeq->Dump();
+            while (!batchLoader.IsEmpty()) {
+                batchLoader.GetBatchSimple(&inputs, &info);
             XTensor paddingEncForAudio;
             if (batchEnc.order == 3)
                 InitTensor2D(&paddingEncForAudio, batchEnc.GetDim(0), int(batchEnc.GetDim(1) / 2), X_FLOAT, config->common.devID);
@@ -193,6 +204,7 @@ namespace s2t
             paddingEncForAudio = paddingEncForAudio * 0 + 1;
 
             DecodingBatch(batchEnc, paddingEncForAudio, indices);
+            }
         }
 
         return true;

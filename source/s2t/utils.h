@@ -46,24 +46,30 @@ namespace s2t {
       int t = (reinterpret_cast<char*>(&a))[0];\
               (reinterpret_cast<char*>(&a))[0]=(reinterpret_cast<char*>(&a))[1];\
               (reinterpret_cast<char*>(&a))[1]=t;} while (0)
+
+    /*
 #define ASSERT(cond) do {                                                                         \
         if (cond)                                                                  \
           (void)0;                                                                 \
         else                                                                       \
           std::cout << "Assert ERROR";       \
       } while (0)
-
+      */
 #ifdef _MSC_VER
 #define __func__ __FUNCTION__
 #endif
-
+#ifndef __FILENAME
+#define __FILENAME__ ( strrchr(__FILE__, DELIMITER) != NULL ? strrchr(__FILE__, DELIMITER)+1 : __FILE__ )
+#endif
 #ifndef ASSERT
-#define ASSERT(cond)
-    do {
-        if (cond)
-            (void)0;
-        else
-            fprintf(stderr, __func__, __FILE__, __LINE__, #cond);
+#define ASSERT(cond) do { \
+        if (cond) \
+            (void)0; \
+        else \
+        { \
+            fprintf(stderr, "[ERROR] calling '%s' in %s\n", #cond, __FILENAME__ ); \
+            throw; \
+        } \
     }while(0)
 #endif // !ASSERT
 

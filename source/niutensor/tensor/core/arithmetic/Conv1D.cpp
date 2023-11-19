@@ -24,7 +24,9 @@
 #include "../../XName.h"
 #include "../../XUtility.h"
 #include "Conv1D.h"
+#ifdef USE_CUDNN
 #include "cudnn.h"
+#endif
 
 
 namespace nts { // namespace nts(NiuTrans.Tensor)

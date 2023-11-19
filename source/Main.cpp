@@ -76,7 +76,64 @@ int main(int argc, const char** argv)
     //--------------------------Load Wave--------------------------
 
     Generator generator;
-    generator.Init(config, model, oft);
+
+    //std::cout << (strlen(config.inference.inputFN) == 0) << (strcmp(config.extractor.inputAudio, "") == 0) << std::endl;
+    CheckNTErrors(strcmp(config.inference.inputFN, "") || strcmp(config.extractor.inputAudio,""),
+        "Giving input path to choose offline or input audio to choose online decoding");
+    // Choosing online inference with speech extractor
+    if (strlen(config.extractor.inputAudio) != 0)
+    {
+        //struct FbankOptions fOpts(config);
+        //class FbankComputer computer(fOpts);
+        //class OfflineFeatureTpl<FbankComputer> oft(computer);
+        generator.Init(config, model, false);
+    }
+    // Choosing offline inference with batch decoding
+    else if (strlen(config.inference.inputFN) != 0)
+    {
+        generator.Init(config, model);
+    }
+    else
+    {
+        CheckNTErrors((strlen(config.inference.inputFN) != 0 || strlen(config.extractor.inputAudio) != 0),
+            "Giving input path to choose offline or input audio to choose online decoding");
+    }
+
     generator.Generate();
+
+    /*****************************Old entrance******************************/
+    //srand(config.common.seed);
+
+    ///* training */
+    //if (strcmp(config.training.trainFN, "") != 0) {
+
+    //    NMTModel model;
+    //    model.InitModel(config);
+
+    //    Trainer trainer;
+    //    trainer.Init(config, model);
+    //    trainer.Run();
+    //}
+
+    ///* translation */
+    //else if (strcmp(config.translation.inputFN, "") != 0) {
+
+    //    /* disable gradient flow */
+    //    DISABLE_GRAD;
+
+    //    NMTModel model;
+    //    model.InitModel(config);
+
+    //    Translator translator;
+    //    translator.Init(config, model);
+    //    translator.Translate();
+    //}
+    //else {
+    //    fprintf(stderr, "Thanks for using NiuTrans.NMT! This is an effcient\n");
+    //    fprintf(stderr, "neural machine translation system. \n\n");
+    //    fprintf(stderr, "   Run this program with \"-train\" for training!\n");
+    //    fprintf(stderr, "Or run this program with \"-input\" for translation!\n");
+    //}
+
     return 0;
 }

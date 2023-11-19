@@ -71,8 +71,8 @@ namespace s2t
         /* de-constructor */
         ~Generator();
 
-        ///* initialize the translator */
-        void Init(S2TConfig& myConfig, S2TModel& myModel, OfflineFeatureTpl<FbankComputer>& myOft);
+        /* initialize the translator */
+        void Init(S2TConfig& myConfig, S2TModel& myModel, bool offline = true);
 
         /* the generate function */
         bool Generate();
