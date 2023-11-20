@@ -215,6 +215,8 @@ namespace s2t {
             return opts_.frameOpts;
         }
 
+        const bool NeedLog10() const { return opts_.useLogFbank;  };
+             
         /**
            Function that computes one frame of features from
            one frame of signal.

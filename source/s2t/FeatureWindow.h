@@ -253,6 +253,11 @@ namespace s2t {
             float vtln_warp,
             XTensor* output);
 
+        void Compute(const XTensor& wave,
+            float vtln_warp,
+            XTensor* output,
+            int noNeedComputeSize);
+
         // This const version of Compute() is a wrapper that
         // calls the non-const version on a temporary object.
         // It's less efficient than the non-const version.
@@ -317,10 +322,22 @@ namespace s2t {
         XTensor paddedWave;
         XTensor torchPaddedWave;
         int startIndex = { 0 };
-        if (paddedAudioSize <= 0) paddedAudioSize = wave.GetDim(0);
-
-        paddedWave.Resize(1, &paddedAudioSize);
-        paddedWave.SetData(wave.GetCell(&startIndex, 1), wave.GetDim(0), 0);
+        int noNeedComputeSize = 0;
+        if (paddedAudioSize > 0) {
+            if ((paddedAudioSize - wave.GetDim(0)) > computer_.GetFrameOptions().WindowSize()) {
+                paddedAudioSize = wave.GetDim(0) + computer_.GetFrameOptions().WindowSize();
+                noNeedComputeSize = computer_.GetFrameOptions().PaddedAudioSize() - paddedAudioSize;
+                paddedWave.Resize(1, &paddedAudioSize);
+                paddedWave.SetData(wave.GetCell(&startIndex, 1), wave.GetDim(0), 0);
+            }
+            else paddedWave = SelectRange(wave, 0, 0, paddedAudioSize);
+        }
+        else { 
+            paddedAudioSize = wave.GetDim(0); 
+            paddedWave.Resize(1, &paddedAudioSize);
+            paddedWave.SetData(wave.GetCell(&startIndex, 1), wave.GetDim(0), 0);
+        }
+        
 
         if (computer_.GetFrameOptions().torchPaddingLength != 0) {
             
@@ -347,12 +364,11 @@ namespace s2t {
                 }
             }
             
-
             if(sample_freq == new_sample_freq) {
-                Compute(torchPaddedWave, vtln_warp, output);
+                Compute(torchPaddedWave, vtln_warp, output, noNeedComputeSize);
             }
             else {
-                ASSERT(FALSE);
+                ASSERT(sample_freq == new_sample_freq);
             }
         }
         else if (sample_freq == new_sample_freq) {
@@ -380,6 +396,58 @@ namespace s2t {
             //    new_sample_freq, &resampled_wave);
             Compute(resampled_wave, vtln_warp, output);
         }
+    }
+
+    template <class F>
+    void OfflineFeatureTpl<F>::Compute(
+        const XTensor& wave,
+        float vtln_warp,
+        XTensor* output,
+        int noNeedComputeSize) {
+        ASSERT(output != NULL);
+
+        // This is the final dimension 
+        
+        INT32 rows_out = NumFrames(wave.GetDim(0), computer_.GetFrameOptions());
+        INT32 cols_out = computer_.Dim();
+        INT32 paddedRows = rows_out;
+        if (noNeedComputeSize != 0) {
+            paddedRows = NumFrames(wave.GetDim(0) + noNeedComputeSize, computer_.GetFrameOptions());
+        }
+        if (rows_out == 0) {
+            output->Reshape(0, 0);
+            return;
+        }
+        int dimSize[] = { paddedRows, cols_out };
+        output->Resize(2, dimSize, X_FLOAT, 1.0);
+        output->SetZeroAll();
+        if (computer_.NeedLog10()) {
+            ClipMe(*output, 1e-10, FLT_MAX);
+            Log10Me(*output);
+        }
+        XTensor window;  // windowed waveform.
+        bool use_raw_log_energy = computer_.NeedRawLogEnergy();
+        int startIndex[] = { 0, 0 };
+        for (INT32 r = 0; r < rows_out; r++) {  // r is frame index.
+            float raw_log_energy = 0.0;
+            ExtractWindow(0, wave, r, computer_.GetFrameOptions(),
+                feature_window_function_, window, (use_raw_log_energy ? &raw_log_energy : NULL));
+
+            //int rowIndex = { r, 0 };
+            XTensor output_row;
+            int rowDimSize = { rows_out };
+            output_row.Resize(1, &rowDimSize);
+            computer_.Compute(raw_log_energy, vtln_warp, &window, output_row);
+            output->SetData(output_row.GetCell(startIndex, 2), cols_out, r * cols_out);
+        }
+        *output = SelectRange(*output, 0, 0, paddedRows - 1);
+        // int newDimSize[] = { rows_out - 1 , cols_out };
+        // output->SetDim(newDimSize);
+        XTensor temp = ReduceMax(ReduceMax(*output, 0), 0);
+        float outputMax = temp.Get0D();
+        ClipMe(*output, outputMax - 8, outputMax);
+        ScaleAndShiftMe(*output, 1.0, 4.0);
+        ScaleAndShiftMe(*output, 0.25, 0.0);
     }
 
     template <class F>

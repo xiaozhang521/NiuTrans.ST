@@ -936,3 +936,5 @@ bin/Debug/NiuTrans.ST.pdb
 output.txt
 /bin/Debug
 /out/build/bin
+/test1.wav
+/test48000.wav

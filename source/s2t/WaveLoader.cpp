@@ -296,14 +296,16 @@ namespace s2t {
         data_.SetZeroAll();
         sampFreq_ = header.SampFreq();
 
-        XTensor buffer, temp;
+        XTensor buffer, newBuffer;
         UINT32 bytes_to_go = header.IsStreamed() ? kBlockSize : header.DataBytes();
+        int initBufferDimSize[] = { bytes_to_go };
+        buffer.Resize(1, initBufferDimSize, X_FLOAT, 1.0);
         
         // Once in a while header.DataBytes() will report an insane value;
         // read the file to the end
         while (is && bytes_to_go > 0) {
             UINT32 block_bytes = min(bytes_to_go, kBlockSize);
-            UINT32 offset = buffer.GetSize();
+            UINT32 offset = newBuffer.GetSize();
 
             /*std::vector<char> buf;
             offset = buf.size();
@@ -315,18 +317,17 @@ namespace s2t {
             INT16 k = *data_ptr++;*/
 
             int arraySize = offset + block_bytes;
-            int* initDimSize = &(arraySize);
-            buffer.Resize(1, initDimSize, X_FLOAT, 1.0);
-            temp.Resize(1, initDimSize, X_FLOAT, 1.0);
+            int initDimSize[] = { arraySize };
+            newBuffer.Resize(1, initDimSize, X_FLOAT, 1.0);
             int index[1] = { offset };
-            is.read(reinterpret_cast<char*>(temp.GetCell(index, 1)), block_bytes);
+            is.read(reinterpret_cast<char*>(newBuffer.GetCell(index, 1)), block_bytes);
             UINT32 bytes_read = is.gcount();
-            //!!!!!!!!!!!!!!!!!!
+            /*
             arraySize = offset + bytes_read;
             int * dimSize = &(arraySize);
             buffer.Resize(1, dimSize, X_FLOAT, 1.0);
-            //!!!!!!!!!!!!!!!!!!
-            buffer.SetData(temp.GetCell(index, 1), buffer.GetDim(0), 0);
+            */
+            buffer.SetData(newBuffer.GetCell(index, 1), block_bytes, offset);
             if (!header.IsStreamed())
                 bytes_to_go -= bytes_read;
         }
