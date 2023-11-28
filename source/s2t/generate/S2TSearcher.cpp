@@ -32,7 +32,7 @@ namespace s2t {
 		endSymbolNum = 0;
 		endSymbols = new int[32];
 		startSymbolNum = 0;
-		startSymbols = new int[32];
+		startSymbols = new int[64];
 		suppressSymbolNum = 0;
 		suppressSymbols = new int[100];
 		scalarMaxLength = -1;
@@ -79,8 +79,25 @@ namespace s2t {
 		InitSuppressSymbols(config, suppressTokens, tokenNum);
 	}
 
+	void S2TGreedySearch::InitPromptSymbols()
+	{
+		const int tokenNum = 27;
+		int promptTokens[tokenNum] = { 50361,   220, 35748,  9830,   241,  7781,  5975, 17174, 11249,   222,
+									   29485,   171,   120,   234,  3509,   114, 20334,  9830,   241,  7781,
+									     162,  3921, 12579,  5437,    99, 26987,  1543 };
+
+		int sos = startSymbols[0];
+
+		for (startSymbolNum = 0; startSymbolNum < tokenNum; startSymbolNum++) {
+			startSymbols[startSymbolNum] = promptTokens[startSymbolNum];
+		}
+		startSymbols[startSymbolNum++] = sos;
+	}
+
 	void S2TGreedySearch::InitStartSymbols(S2TConfig& config)
 	{
+		if (config.whisperdec.language.languageToken == 50260)	// Chinese prompt
+			InitPromptSymbols();
 		startSymbols[startSymbolNum++] = config.whisperdec.language.languageToken; // en 50259
 		startSymbols[startSymbolNum++] = 50359;
 		startSymbols[startSymbolNum++] = 50363; // notimestamps
@@ -167,6 +184,7 @@ namespace s2t {
 		XTensor maskEnc;
 		XTensor encoding;
 		batchSize = input.GetDim(0);
+		input.Dump(stderr, "Input output is: ", 10);
 
 		/* encoder mask */
 		model->MakeS2TMaskEnc(padding, maskEnc);
@@ -215,7 +233,7 @@ namespace s2t {
 		// encoding.BinaryRead(audioFeature);
 
 		// encoding.Dump(stderr, "Decoder input(Encoder output): ", 20);
-		//inputDec.Dump(stderr, "Decoder input(Tokens): ", -1);
+		inputDec.Dump(stderr, "Decoder input(Tokens): ", -1);
 
 		int initTokenLen = inputDec.GetDim(-1);
 
@@ -314,7 +332,7 @@ namespace s2t {
 		suppressSymbolNum = 0;
 		fullHypos = NULL;
 		endSymbols = new int[32];
-		startSymbols = new int[32];
+		startSymbols = new int[64];
 		suppressSymbols = new int[100];
 		isEarlyStop = false;
 		needReorder = false;
@@ -369,8 +387,25 @@ namespace s2t {
 		BeamSearch::Init(endSymbols, endSymbolNum, startSymbols[0], maxLen, beamSize, batchSize, alpha, scalarMaxLength);
 	}
 
+	void S2TBeamSearch::InitPromptSymbols()
+	{
+		const int tokenNum = 27;
+		int promptTokens[tokenNum] = { 50361,   220, 35748,  9830,   241,  7781,  5975, 17174, 11249,   222,
+									   29485,   171,   120,   234,  3509,   114, 20334,  9830,   241,  7781,
+										 162,  3921, 12579,  5437,    99, 26987,  1543 };
+
+		int sos = startSymbols[0];
+
+		for (startSymbolNum = 0; startSymbolNum < tokenNum; startSymbolNum++) {
+			startSymbols[startSymbolNum] = promptTokens[startSymbolNum];
+		}
+		startSymbols[startSymbolNum++] = sos;
+	}
+
 	void S2TBeamSearch::InitStartSymbols(S2TConfig& config)
 	{
+		if (config.whisperdec.language.languageToken == 50260)	// Chinese prompt
+			InitPromptSymbols();
 		startSymbols[startSymbolNum++] = config.whisperdec.language.languageToken; // en 50259
 		startSymbols[startSymbolNum++] = 50359;
 		startSymbols[startSymbolNum++] = 50363; // notimestamps

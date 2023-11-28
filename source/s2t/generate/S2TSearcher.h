@@ -70,6 +70,9 @@ namespace s2t {
         /* initialize the start symbols */
         void InitStartSymbols(S2TConfig& config);
 
+        /* initialize the prompt symbols */
+        void InitPromptSymbols();
+
         /* initialize the suppress symbols */
         void InitSuppressSymbols(S2TConfig& config, int* tokens=NULL, const int num=0);
 
@@ -201,6 +204,9 @@ namespace s2t {
 
         /* initialize the start symbols */
         void InitStartSymbols(S2TConfig& config);
+
+        /* initialize the prompt symbols */
+        void InitPromptSymbols();
 
         /* initialize the suppress symbols */
         void InitSuppressSymbols(S2TConfig& config, int* tokens = NULL, const int num = 0);
