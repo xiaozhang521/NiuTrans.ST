@@ -35,18 +35,18 @@ python3 ${FeatureExactor} -a ${audio_wav} -o ${bin_tsv} -p ${bin_dir} -v ${vad_m
 
 # NiuTrans encoder+decoder(C++)
 
-config_string="-fbank 80\n 
-               -bigatt false\n
-               -dev 0\n
-               -beam 1\n
-               -model ${model}\n
-               -tgtvocab ${DATA}/model/vocab_whisper_utf\n
-               -maxlen 224\n
-               -lenalpha 1.0\n
-               -sbatch 1\n
-               -wbatch 2000 \n
-               -lang en\n
-               -input ${input}\n
+config_string="-fbank 80
+               -bigatt false
+               -dev 0
+               -beam 1
+               -model ${model}
+               -tgtvocab ${DATA}/model/vocab_whisper_utf
+               -maxlen 224
+               -lenalpha 1.0
+               -sbatch 1
+               -wbatch 2000
+               -lang en
+               -input ${input}
                -output ${output}"
 
 echo ${config_string} > ${config}

@@ -175,8 +175,9 @@ XTensor Attention::Make(XTensor& k, XTensor& q, XTensor& v,
             }
 
             result= MakeAttention(cache->key, q2, cache->value, mask, isEnc);
+        }else{
+            CheckNTErrors(0, "invalid cache type");
         }
-        CheckNTErrors(0, "invalid cache type");
     }
 
     timer.m_end_timer();
