@@ -144,9 +144,8 @@ XTensor Attention::Make(XTensor& k, XTensor& q, XTensor& v,
         k2 = MulAndShift(k, weightK, biasK);
         v2 = MulAndShift(v, weightV, biasV);
 
-        if (useRPR && attType == SELF_ATT)
-            result= MakeRPRAttention(k2, q2, v2, mask, isEnc);
-        result= MakeAttention(k2, q2, v2, mask, isEnc);
+        if (useRPR && attType == SELF_ATT) result= MakeRPRAttention(k2, q2, v2, mask, isEnc);
+        else result= MakeAttention(k2, q2, v2, mask, isEnc);
     }
 
     else {
@@ -163,9 +162,9 @@ XTensor Attention::Make(XTensor& k, XTensor& q, XTensor& v,
             cache->value = v2;
             cache->miss = false;
 
-            if (useRPR)
-                result= MakeRPRAttention(cache->key, q2, cache->value, mask, isEnc);
-            result= MakeAttention(cache->key, q2, cache->value, mask, isEnc);
+            if (useRPR)result= MakeRPRAttention(cache->key, q2, cache->value, mask, isEnc);
+            else result= MakeAttention(cache->key, q2, cache->value, mask, isEnc);
+
         }
         else if (attType == EN_DE_ATT) {
             if (cache->miss) {
