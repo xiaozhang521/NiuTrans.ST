@@ -1,7 +1,7 @@
 # This bash contains the progress of "Vad&feature exacting(python)", "NiuTrans encoder+decoder(C++)" and "Token decode(python)"
 
 # script path
-ROOT=/home/gaochenghao/NiuTrans.ST
+ROOT=/home/gaochenghao/workplace/NiuTrans.ST
 # audio,model path
 DATA=/home/gaochenghao/data/NiuTransData
 

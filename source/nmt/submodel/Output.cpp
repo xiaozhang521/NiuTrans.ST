@@ -23,7 +23,7 @@
 #include "Output.h"
 #include "Embedding.h"
 #include "../../niutensor/tensor/core/CHeader.h"
-
+#include "../../utils/timer.h"
 /* the nmt namespace */
 namespace nmt
 {
@@ -81,6 +81,8 @@ make the network
 */
 XTensor OutputLayer::Make(XTensor& input, bool normalized)
 {
+    util::timer_c timer;
+    timer.m_start_timer();          
     XTensor output;
 
     output = MMul(input, X_NOTRANS, *w, X_TRANS);
@@ -100,6 +102,8 @@ XTensor OutputLayer::Make(XTensor& input, bool normalized)
         if (output.dataType != dataType)
             output = ConvertDataType(output, dataType);
     }
+    timer.m_end_timer();
+    time_output += timer.m_get_time_diff_msec();
     return output;
 }
 

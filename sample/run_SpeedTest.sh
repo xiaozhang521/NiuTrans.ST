@@ -1,7 +1,7 @@
 # This bash contains the progress of "Vad&feature exacting(python)", "NiuTrans encoder+decoder(C++)" and "Token decode(python)"
 
 # script path
-ROOT=/home/gaochenghao/NiuTrans.ST
+ROOT=/home/gaochenghao/workplace/NiuTrans.ST
 # audio,model path
 DATA=/home/gaochenghao/data/NiuTransData
 
@@ -11,7 +11,7 @@ TokenDecoder=${ROOT}/sample/covertTokens.py
 
 
 #audio_wav=${DATA}/data/zh_12345_more.wav
-audio_wav=/data/zhangyuhao/librispeech/LibriSpeech/test-clean/672/122797/672-122797-0000.flac
+audio_wav=/home/gaochenghao/workplace/data/NiuTransData/data/672-122797-0000.flac
 
 bin_tsv=${DATA}/data/test-vad-wav_more.tsv
 
@@ -26,7 +26,7 @@ vocab=${DATA}/model/vocab_whisper_utf
 token=${output}
 
 #model=${DATA}/model/whisper_tiny_niutrans_s2t.bin
-model=${DATA}/model/whisper_large-v2_niutrans_s2t.bin
+model=${DATA}/model/whisper_large_v2_niutrans_s2t.bin
 
 timestamp_s=$(date "+%s%N")
 

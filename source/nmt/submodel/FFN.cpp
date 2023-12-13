@@ -25,6 +25,7 @@
 #include "../Config.h"
 #include "../../niutensor/tensor/core/CHeader.h"
 #include "../../niutensor/tensor/function/FHeader.h"
+#include "../../utils/timer.h"
 
 /* the nmt namespace */
 namespace nmt
@@ -91,6 +92,9 @@ y = max(0, x * w1 + b1) * w2 + b2
 */
 XTensor FFN::Make(XTensor& input)
 {
+    util::timer_c timer;
+    timer.m_start_timer();          
+
     XTensor t1;
 
     /* t1 = max(0, x * w1 + b1) */
@@ -102,7 +106,10 @@ XTensor FFN::Make(XTensor& input)
         t1 = Dropout(t1, dropoutP, /*inplace=*/true);
 
     /* result = t1 * w2 + b2 */
-    return MulAndShift(t1, w2, b2);
+    t1=MulAndShift(t1, w2, b2);
+    timer.m_end_timer();
+    time_ffn += timer.m_get_time_diff_msec();
+    return t1;
 }
 
 } /* end of the nmt namespace */

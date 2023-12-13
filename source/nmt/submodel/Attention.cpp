@@ -22,6 +22,7 @@
 
 #include "Attention.h"
 #include "Embedding.h"
+#include "../../utils/timer.h"
 
 /* the nmt namespace */
 namespace nmt
@@ -128,10 +129,13 @@ make the network
 XTensor Attention::Make(XTensor& k, XTensor& q, XTensor& v, 
                         XTensor* mask, Cache* cache, int attType)
 {
+    util::timer_c timer;
+    timer.m_start_timer();          
+    
     const bool isEnc = (!cache) ? true : false;
 
     /* linear transformation before self-attention */
-    XTensor q2, k2, v2;
+    XTensor q2, k2, v2,result;
 
     q2 = MulAndShift(q, weightQ, biasQ);
 
@@ -141,8 +145,8 @@ XTensor Attention::Make(XTensor& k, XTensor& q, XTensor& v,
         v2 = MulAndShift(v, weightV, biasV);
 
         if (useRPR && attType == SELF_ATT)
-            return MakeRPRAttention(k2, q2, v2, mask, isEnc);
-        return MakeAttention(k2, q2, v2, mask, isEnc);
+            result= MakeRPRAttention(k2, q2, v2, mask, isEnc);
+        result= MakeAttention(k2, q2, v2, mask, isEnc);
     }
 
     else {
@@ -160,8 +164,8 @@ XTensor Attention::Make(XTensor& k, XTensor& q, XTensor& v,
             cache->miss = false;
 
             if (useRPR)
-                return MakeRPRAttention(cache->key, q2, cache->value, mask, isEnc);
-            return MakeAttention(cache->key, q2, cache->value, mask, isEnc);
+                result= MakeRPRAttention(cache->key, q2, cache->value, mask, isEnc);
+            result= MakeAttention(cache->key, q2, cache->value, mask, isEnc);
         }
         else if (attType == EN_DE_ATT) {
             if (cache->miss) {
@@ -170,10 +174,15 @@ XTensor Attention::Make(XTensor& k, XTensor& q, XTensor& v,
                 cache->miss = false;
             }
 
-            return MakeAttention(cache->key, q2, cache->value, mask, isEnc);
+            result= MakeAttention(cache->key, q2, cache->value, mask, isEnc);
         }
         CheckNTErrors(0, "invalid cache type");
     }
+
+    timer.m_end_timer();
+    time_attn += timer.m_get_time_diff_msec();
+    return result;
+
 }
 
 /*

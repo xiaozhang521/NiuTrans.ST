@@ -19,6 +19,7 @@
 #include "LayerNorm.h"
 #include "../../niutensor/tensor/core/CHeader.h"
 #include "../../niutensor/tensor/function/FHeader.h"
+#include "../../utils/timer.h"
 
 /* the nmt namespace */
 namespace nmt
@@ -74,10 +75,20 @@ initialize the model
 */
 XTensor LayerNorm::Run(XTensor& input)
 {
+
+    util::timer_c timer;
+    timer.m_start_timer();          
+
+    XTensor result;
     if (isL1Normed)
-        return RunL1Norm(input);
+        result= RunL1Norm(input);
     else
-        return RunL2Norm(input);
+        result= RunL2Norm(input);
+    
+    
+    timer.m_end_timer();
+    time_ln += timer.m_get_time_diff_msec();
+    return result;
 }
 
 /*

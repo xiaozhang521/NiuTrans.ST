@@ -30,6 +30,7 @@
 #include "niutensor/tensor/function/GELU.h"
 
 #include <ctime>
+#include "./utils/timer.h"
 
 using namespace nmt;
 using namespace s2t;
@@ -61,8 +62,13 @@ int main(int argc, const char** argv)
     generator.Init(config, model);
     generator.Generate();
 
+    printf("=============time_consume=============");
+    printf("LayerNorm:\t%.2fs\n", time_ln / 1000.0);
+    printf("FFN:\t%.2fs\n", time_ffn / 1000.0);
+    printf("Attention:\t%.2fs\n", time_conv1d / 1000.0);
+    printf("Output:\t%.2fs\n", time_output / 1000.0);
 
-
+    printf("=============time_consume=============");
     //generator.generate(); 
     // 
     /*****************************Old entrance******************************/
