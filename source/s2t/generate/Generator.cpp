@@ -188,7 +188,7 @@ namespace s2t
 
             // decoding speed test
             const clock_t begin_time = clock();
-            for (int i = 0; i < 1; ++i) {
+            for (int i = 0; i < 20; ++i) {
                 DecodingBatch(batchEnc, paddingEncForAudio, indices);
             }
             cudaThreadSynchronize();

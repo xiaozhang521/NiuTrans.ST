@@ -21,6 +21,7 @@
 #include "Extractor.h"
 #include "../../niutensor/tensor/function/GELU.h"
 #include "../../niutensor/tensor/core/CHeader.h"
+#include "../../utils/timer.h"
 namespace s2t{
     Extractor::Extractor()
     {
@@ -70,6 +71,9 @@ namespace s2t{
     }
     XTensor Extractor::Make(XTensor& input)
     {
+        util::timer_c timer;
+        timer.m_start_timer();
+
         XTensor outFeature;
         outFeature = Conv1DBias(input, kernels[0], biases[0], convStrides[0], 1);
         outFeature = GELU(outFeature);
@@ -78,6 +82,9 @@ namespace s2t{
             outFeature = Conv1DBias(outFeature, kernels[i], biases[i], convStrides[i], 1);
             outFeature = GELU(outFeature);
             }
+
+        timer.m_end_timer();
+        time_conv1d += timer.m_get_time_diff_msec();
         return outFeature;
     }
 }

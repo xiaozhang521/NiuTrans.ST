@@ -24,7 +24,6 @@
 #include "../../XName.h"
 #include "../../XUtility.h"
 #include "Conv1D.h"
-#include "../../../../utils/timer.h"
 #include "cudnn.h"
 
 
@@ -243,8 +242,7 @@ TODO
 XTensor Conv1DBias(const XTensor &input, const XTensor &weight, const XTensor &bias,
                    int stride, int padding, bool useBias)
 {
-    util::timer_c timer;
-    timer.m_start_timer();        
+
 
     CheckNTErrors((input.order==3 && weight.order==3), "The orders of input and weight should be 3");
     
@@ -269,16 +267,14 @@ XTensor Conv1DBias(const XTensor &input, const XTensor &weight, const XTensor &b
         XLink::AddParamToHeadInt(&output, padding);
     }
 
-    timer.m_end_timer();
-    time_conv1d += timer.m_get_time_diff_msec();
+
     return output;
 
 }
 
 XTensor Conv1DBase(const XTensor& input, const XTensor& weight, int stride, int padding)
 {
-    util::timer_c timer;
-    timer.m_start_timer();        
+
 
     CheckNTErrors((input.order == 3 && weight.order == 3), "The orders of input and weight should be 3");
 
@@ -301,8 +297,6 @@ XTensor Conv1DBase(const XTensor& input, const XTensor& weight, int stride, int 
         XLink::AddParamToHeadInt(&output, padding);
     }
 
-    timer.m_end_timer();
-    time_conv1d += timer.m_get_time_diff_msec();
 
     return output;
 

@@ -130,19 +130,30 @@ XTensor Attention::Make(XTensor& k, XTensor& q, XTensor& v,
                         XTensor* mask, Cache* cache, int attType)
 {
     util::timer_c timer;
-    timer.m_start_timer();          
+    timer.m_start_timer();
+    util::timer_c timer_mul;
     
     const bool isEnc = (!cache) ? true : false;
 
     /* linear transformation before self-attention */
     XTensor q2, k2, v2,result;
 
+    timer_mul.m_start_timer();
+
     q2 = MulAndShift(q, weightQ, biasQ);
+
+    timer_mul.m_end_timer();
+    time_attn_mul += timer_mul.m_get_time_diff_msec();
 
     if (!cache || isTraining || !(cache->enable)) {
         /* self attention for encoder layers */
+        timer_mul.m_start_timer();
+
         k2 = MulAndShift(k, weightK, biasK);
         v2 = MulAndShift(v, weightV, biasV);
+
+        timer_mul.m_end_timer();
+        time_attn_mul += timer_mul.m_get_time_diff_msec();
 
         if (useRPR && attType == SELF_ATT) result= MakeRPRAttention(k2, q2, v2, mask, isEnc);
         else result= MakeAttention(k2, q2, v2, mask, isEnc);
@@ -150,8 +161,13 @@ XTensor Attention::Make(XTensor& k, XTensor& q, XTensor& v,
 
     else {
         if (attType == SELF_ATT) {
+            timer_mul.m_start_timer();
+
             k2 = MulAndShift(k, weightK, biasK);
             v2 = MulAndShift(v, weightV, biasV);
+
+            timer_mul.m_end_timer();
+            time_attn_mul += timer_mul.m_get_time_diff_msec();
 
             /* if hit, we only concat the cache with the new token */
             if (!cache->miss) {
@@ -168,9 +184,14 @@ XTensor Attention::Make(XTensor& k, XTensor& q, XTensor& v,
         }
         else if (attType == EN_DE_ATT) {
             if (cache->miss) {
+                timer_mul.m_start_timer();
+
                 cache->key = MulAndShift(k, weightK, biasK);
                 cache->value = MulAndShift(v, weightV, biasV);
                 cache->miss = false;
+
+                timer_mul.m_end_timer();
+                time_attn_mul += timer_mul.m_get_time_diff_msec();
             }
 
             result= MakeAttention(cache->key, q2, cache->value, mask, isEnc);
@@ -216,10 +237,18 @@ XTensor Attention::MakeAttention(XTensor& k, XTensor& q, XTensor& v,
         ScaleMe(q, 1.0F / (float)sqrt((float)kDim / nhead));
 
     /* scalar = softmax(Q * K^T / sqrt(dk)) * V */
+
+    util::timer_c timer_mul;
+    timer_mul.m_start_timer();
+
     if(nhead > 1)
         att = BMMul(q, X_NOTRANS, kheads, X_TRANS);
     else
         att = BMMul(q, X_NOTRANS, k, X_TRANS);
+
+
+    timer_mul.m_end_timer();
+    time_attn_mul += timer_mul.m_get_time_diff_msec();
 
     if (att.dataType == X_FLOAT16) {
         att = ConvertDataType(att, X_FLOAT);
@@ -239,17 +268,26 @@ XTensor Attention::MakeAttention(XTensor& k, XTensor& q, XTensor& v,
 
     if (dataType != att.dataType)
         att = ConvertDataType(att, dataType);
-    
+
+    timer_mul.m_start_timer();
+
     if (nhead > 1)
         att = BMMul(att, vheads);
     else
         att = BMMul(att, v);
 
+
+    XTensor result;
     /* concatenate the heads */
     if (nhead > 1)
-        return MulAndShift(Merge(att, att.order - 1), weightO, biasO);
+        result= MulAndShift(Merge(att, att.order - 1), weightO, biasO);
     else
-        return MulAndShift(att, weightO, biasO);
+        result= MulAndShift(att, weightO, biasO);
+
+
+    timer_mul.m_end_timer();
+    time_attn_mul += timer_mul.m_get_time_diff_msec();
+    return result;
 }
     
 /*

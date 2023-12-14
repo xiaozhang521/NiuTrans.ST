@@ -63,10 +63,12 @@ int main(int argc, const char** argv)
     generator.Generate();
 
     printf("=============time_consume=============\n");
+    printf("Conv+GELU:\t%.2fs\n", time_conv1d / 1000.0);
     printf("LayerNorm:\t%.2fs\n", time_ln / 1000.0);
-    printf("FFN:\t%.2fs\n", time_ffn / 1000.0);
-    printf("Attention:\t%.2fs\n", time_conv1d / 1000.0);
-    printf("Output:\t%.2fs\n", time_output / 1000.0);
+    printf("FFN:\t\t%.2fs\n", time_ffn / 1000.0);
+    printf("Attention:\t%.2fs\n", time_attn / 1000.0);
+    printf("Attention(Mul):\t%.2fs\n", time_attn_mul / 1000.0);
+    printf("Output:\t\t%.2fs\n", time_output / 1000.0);
 
     printf("=============time_consume=============\n");
     //generator.generate(); 
