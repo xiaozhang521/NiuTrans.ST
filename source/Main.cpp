@@ -23,11 +23,12 @@
 
 #include "./s2t/S2TConfig.h"
 #include "./nmt/train/Trainer.h"
-#include "./nmt/translate/Translator.h"
 #include "./s2t/S2TModel.h"
 #include "./s2t/generate/Generator.h"
-#include "./s2t/S2TVocab.h"
-#include "niutensor/tensor/function/GELU.h"
+
+
+
+#define CLOCKS_PER_SEC ((clock_t)1000)
 
 #include <ctime>
 #include "./utils/timer.h"
@@ -36,31 +37,61 @@ using namespace nmt;
 using namespace s2t;
 using namespace nts;
 
-int main(int argc, const char** argv)
-{
-    std::ios_base::sync_with_stdio(false);
-    std::cin.tie(NULL);
-
+int main(int argc, const char **argv) {
     if (argc == 0)
         return 1;
+
+    DISABLE_GRAD;
     /* load configurations */
-    S2TConfig config(argc, argv);
-    S2TModel model;
-    model.InitModel(config);
-    //config.showConfig();
+    S2TConfig *config = new S2TConfig(argc, argv);
+    S2TModel *model = new S2TModel();
 
-    //model.TestDumpParams(&model.encoder->selfAtts[1].weightQ);
-
-    //cout << "Tgt Vocab File: " << config.common.tgtVocabFN << endl;
-    //S2TVocab vocab;
-    //vocab.Load(config.common.tgtVocabFN);
-    // vocab.ShowVocab();
-    //vocab.Test();
+    model->InitModel(config);
 
 
     Generator generator;
-    generator.Init(config, model);
-    generator.Generate();
+    //std::cout << (strlen(config.inference.inputFN) == 0) << (strcmp(config.extractor.inputAudio, "") == 0) << std::endl;
+    CheckNTErrors(strcmp(config->inference.inputFN, "") || strcmp(config->extractor.inputAudio, ""),
+                  "Giving input path to choose offline or input audio to choose online decoding");
+    // Choosing online inference with speech extractor
+    if (strlen(config->extractor.inputAudio) != 0) {
+        //struct FbankOptions fOpts(config);
+        //class FbankComputer computer(fOpts);
+        //class OfflineFeatureTpl<FbankComputer> oft(computer);
+        generator.Init(config, model, false);
+    }
+        // Choosing offline inference with batch decoding
+    else if (strlen(config->inference.inputFN) != 0) {
+        generator.Init(config, model);
+    } else {
+        CheckNTErrors((strlen(config->inference.inputFN) != 0 || strlen(config->extractor.inputAudio) != 0),
+                      "Giving input path to choose offline or input audio to choose online decoding");
+    }
+
+    // generator.Generate();
+
+
+    for (int i = 1; i <= 3; ++i) {
+        char language[MAX_NAME_LEN];
+        char file[MAX_PATH_LEN];
+        strcpy(language, "zh");
+        string path="/home/data/NiuTransData/data/zh/"+ to_string(i)+".wav";
+        // 使用 c_str() 将 std::string 转换为 C 风格字符串
+        strncpy(file, path.c_str(), MAX_PATH_LEN - 1);
+        // 确保字符串以 null 字符结尾
+        file[MAX_PATH_LEN - 1] = '\0';
+
+        clock_t start, finish;
+        double duration;
+        start = clock();
+        generator.Interact(language,file , FALSE);
+        cudaThreadSynchronize();
+        finish = clock();
+        duration = (double) (finish - start) / CLOCKS_PER_SEC;
+        std::cout << "Time: " << duration << endl;
+
+    }
+
 
     printf("=============time_consume=============\n");
     printf("Conv+GELU:\t%.2fs\n", time_conv1d / 1000.0);

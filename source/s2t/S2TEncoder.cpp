@@ -26,13 +26,29 @@ namespace s2t
 
     S2TAttEncoder::S2TAttEncoder()
     {
-        
+        devID = -1;
+        extractor = NULL;
+        selfAtts = NULL;
+        ffns = NULL;
+        attLayerNorms = NULL;
+        fnnLayerNorms = NULL;
+        encoderLayerNorm = NULL;
+        useHistory = false;
+        history = NULL;
+        dropoutP = 0.0;
+        embDim = -1;
+        finalNorm = false;
+        ignored = -1;
+        nlayer = -1;
+        preLN = false;
+        vSize = -1;
+        isTraining = false;
     }
 
     
     S2TAttEncoder::~S2TAttEncoder()
     {
-
+        delete extractor;
     }
 
     void S2TAttEncoder::InitModel(S2TConfig& config)

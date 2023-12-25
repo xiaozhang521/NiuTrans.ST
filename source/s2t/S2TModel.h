@@ -66,7 +66,7 @@ namespace s2t
         vector<float*> GetFloatConfigs();
 
         /* initialize the model */
-        void InitModel(S2TConfig& config);
+        void InitModel(S2TConfig* config);
 
     //    /* print model configurations */
     //    void ShowModelConfig();

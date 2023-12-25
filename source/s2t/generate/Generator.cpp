@@ -29,6 +29,7 @@ namespace s2t
     /* constructor */
     Generator::Generator()
     {
+        oft = NULL;
         config = NULL;
         model = NULL;
         seacher = NULL;
@@ -44,27 +45,44 @@ namespace s2t
             delete (S2TGreedySearch*)seacher;
         seacher = nullptr;
         delete outputBuf;
+        if (oft)
+            delete oft;
+
+        if (model)
+            delete model;
+        if (config)
+            delete config;
+
     }
 
     /* initialize the model */
-    void Generator::Init(S2TConfig& myConfig, S2TModel& myModel)
+    void Generator::Init(S2TConfig* myConfig, S2TModel* myModel, bool offline)
     {
         cout << "----- Generator Init -----" << endl;
-        model = &myModel;
-        config = &myConfig;
+        model = myModel;
+        config = myConfig;
+
+        // disable the following code when using for service
+        struct FbankOptions fOpts(*myConfig);
+        class FbankComputer computer(fOpts);
+        if (offline)
+            oft = NULL;
+        else
+            oft = new OfflineFeatureTpl<FbankComputer>(fOpts);
+        
 
         if (config->inference.beamSize > 1) {
             LOG("Inferencing with beam search (beam=%d, batchSize= %d sents | %d tokens, lenAlpha=%.2f, maxLenAlpha=%.2f) ",
                 config->inference.beamSize, config->common.sBatchSize, config->common.wBatchSize,
                 config->inference.lenAlpha, config->inference.maxLenAlpha);
             seacher = new S2TBeamSearch();
-            ((S2TBeamSearch*)seacher)->Init(myConfig);
+            ((S2TBeamSearch*)seacher)->Init(*myConfig);
         }
         else if (config->inference.beamSize == 1) {
             LOG("Inferencing with greedy search (batchSize= %d sents | %d tokens, maxLenAlpha=%.2f)",
                 config->common.sBatchSize, config->common.wBatchSize, config->inference.maxLenAlpha);
             seacher = new S2TGreedySearch();
-            ((S2TGreedySearch*)seacher)->Init(myConfig);
+            ((S2TGreedySearch*)seacher)->Init(*myConfig);
         }
         else {
             CheckNTErrors(false, "Invalid beam size\n");
@@ -80,6 +98,16 @@ namespace s2t
             isSingle = 1;
             batchEnc = Unsqueeze(batchEnc, 0, 1);
             paddingEnc = Unsqueeze(paddingEnc, 0, 1);
+        }
+
+        // clear cache
+        if (model->decoder->selfAttCache) {
+            delete[] model->decoder->selfAttCache;
+            model->decoder->selfAttCache = new Cache[model->decoder->nlayer];
+        }
+        if (model->decoder->enDeAttCache) {
+            delete[] model->decoder->enDeAttCache;
+            model->decoder->enDeAttCache = new Cache[model->decoder->nlayer];
         }
 
         // begin decoding task
@@ -119,8 +147,12 @@ namespace s2t
                     tokens += " ";
             }
             if (i < batchSize)
-                tokens += "\n";
+                tokens += "\n";           
         }
+
+        for (int i = 0; i < batchSize; i++)
+            delete outputs[i];
+        delete[] outputs;
 
         ofstream file(config->inference.outputFN, std::ios::app);
         if (!file.is_open()) {
@@ -130,51 +162,69 @@ namespace s2t
             file << tokens;
             file.close();
         }
-
+        
 
         if (isSingle) {
             /*TODO*/
             batchEnc = Squeeze(batchEnc);
         }
-
+            
         return batchEnc;
-
+            
     }
 
     bool Generator::Generate()
     {
-        batchLoader.Init(*config, false);
-
         /* inputs */
         XTensor batchEnc;
-        XTensor paddingEnc;
+        if (oft)
+        {
+            oft->Read();
+            /*TODO !!!*/
+            //oft->convertType();ffmepg
+            oft->ComputeFeatures(oft->Data().Data(), oft->Data().SampFreq(), 1.0, &batchEnc);
+            batchEnc.FlushToDevice(config->common.devID);
+            LOG("Filter-bank features processing complete");
 
-        /* sentence information */
-        XList info;
-        XList inputs;
-        int wordCount;
-        IntList indices;
-        inputs.Add(&batchEnc);
-        inputs.Add(&paddingEnc);
-        info.Add(&wordCount);
-        info.Add(&indices);
-        //TripleSample* longestSample = (TripleSample*)(batchLoader.buf->Get(0));
-        //std::cout << longestSample->audioPath << endl;
-        //longestSample->audioSeq->Dump();
-        while (!batchLoader.IsEmpty()) {
-            batchLoader.GetBatchSimple(&inputs, &info);
-            //batchEnc.Dump();
-            //DecodingBatch(batchEnc, paddingEnc, indices);
+            //while (1) {
 
-            /*TODO wrong size*/
-            //batchLoader.GetBatchSimple(&inputs, &info);
-            // batchEnc.Dump(stderr, NULL, -1);
+            // Batch 1
+            IntList indices;
+            indices.Add(0);
 
-            //InitTensor3D(&batchEnc, 1, 3000, 80, X_FLOAT, config->common.devID);    // b * l * f
-            //FILE* audioFile = fopen("../tools/data/batch.bin.using", "rb");
-            //if (audioFile) {
-            //    batchEnc.BinaryRead(audioFile);
-            //}
+            XTensor paddingEncForAudio;
+            InitTensor1D(&paddingEncForAudio, int(batchEnc.GetDim(0) / 2), X_FLOAT, config->common.devID, false);
+
+            paddingEncForAudio = paddingEncForAudio * 0 + 1;
+
+            // batchEnc.enableGrad = false;
+
+        
+            DecodingBatch(batchEnc, paddingEncForAudio, indices);
+            // }
+        }
+        else
+        {
+            batchLoader.Init(*config, false);
+
+            XTensor paddingEnc;
+            /* sentence information */
+            XList info;
+            XList inputs;
+            int wordCount;
+            IntList indices;
+            inputs.Add(&batchEnc);
+            inputs.Add(&paddingEnc);
+            info.Add(&wordCount);
+            info.Add(&indices);
+            //TripleSample* longestSample = (TripleSample*)(batchLoader.buf->Get(0));
+            //std::cout << longestSample->audioPath << endl;
+            //longestSample->audioSeq->Dump();
+            while (!batchLoader.IsEmpty()) {
+                batchLoader.GetBatchSimple(&inputs, &info);
+                //batchEnc.Dump();
+                //DecodingBatch(batchEnc, paddingEnc, indices);
+
 
             XTensor paddingEncForAudio;
             if (batchEnc.order == 3)
@@ -185,26 +235,56 @@ namespace s2t
                 CheckNTErrors(false, "Invalid batchEnc size\n");
             paddingEncForAudio = paddingEncForAudio * 0 + 1;
 
-
-            // decoding speed test
-            const clock_t begin_time = clock();
-            for (int i = 0; i < 20; ++i) {
-                DecodingBatch(batchEnc, paddingEncForAudio, indices);
+            DecodingBatch(batchEnc, paddingEncForAudio, indices);
             }
-            cudaThreadSynchronize();
-            float time_consume = float(clock( ) - begin_time)/1000.0;  //最小精度到ms
-            printf("model decode time: %.2f ms\n",time_consume);
-
-
         }
 
         return true;
     }
 
+    void Generator::Interact(char* language, char* file, bool offline) {
+
+        DISABLE_GRAD;
+
+        strcpy(config->whisperdec.language.language, language);
+        config->whisperdec.InitLanguageToken();
+        strcpy(config->inference.inputFN, "");
+        strcpy(config->extractor.inputAudio, file);
+        if (config->inference.beamSize > 1) {
+            ((S2TBeamSearch*)seacher)->InitStartSymbols(*config);
+        }
+        else {
+            ((S2TGreedySearch*)seacher)->InitStartSymbols(*config);
+        }
+        //cout<<"inteact:"<<config->extractor.inputAudio<<endl;
+        struct FbankOptions fOpts(*config);
+        class FbankComputer computer(fOpts);
+        if (offline)
+            oft = NULL;
+        else
+            if (oft != NULL) {
+                delete oft;
+                oft = NULL;
+            }
+            oft = new OfflineFeatureTpl<FbankComputer>(fOpts);
+
+        Generate();
+
+        if (outputBuf) {
+            delete outputBuf;
+            outputBuf = NULL;
+        }
+            
+        if (oft != NULL) {
+            delete oft;
+            oft = NULL;
+        }
+   
+    }
 
     bool Generator::TestInference()         // not work for batch
     {
-
+        
         // Pad audio 30s at right
 
         // extract fbank feature
@@ -223,7 +303,7 @@ namespace s2t
         paddingEnc = paddingEnc + 1;
 
         //DecodingBatch(test_audio_pad, paddingEnc);
-
+            
         return 1;
     }
 

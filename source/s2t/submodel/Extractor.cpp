@@ -36,6 +36,7 @@ namespace s2t{
     Extractor::~Extractor()
     {
         delete[] kernels;
+		delete[] biases;
     }
     /* set the training flag */
     void Extractor::SetTrainingFlag(bool myIsTraining)

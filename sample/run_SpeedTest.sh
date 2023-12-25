@@ -1,7 +1,9 @@
 # This bash contains the progress of "Vad&feature exacting(python)", "NiuTrans encoder+decoder(C++)" and "Token decode(python)"
+export PATH=/home/gaochenghao/tools/cuda-11.7/bin:$PATH
+export LD_LIBRARY_PATH=/home/gaochenghao/tools/cuda-11.7/lib64/:$LD_LIBRARY_PATH
 
 # script path
-ROOT=/home/gaochenghao/workplace/NiuTrans.ST
+ROOT=/home/gaochenghao/NiuTrans.ST
 # audio,model path
 DATA=/home/gaochenghao/data/NiuTransData
 
@@ -11,7 +13,8 @@ TokenDecoder=${ROOT}/sample/covertTokens.py
 
 
 #audio_wav=${DATA}/data/zh_12345_more.wav
-audio_wav=/home/gaochenghao/workplace/data/NiuTransData/data/672-122797-0000.flac
+#audio_wav=/home/gaochenghao/workplace/data/NiuTransData/data/672-122797-0000.flac
+audio_wav=/home/gaochenghao/data/NiuTransData/data/long_bbc.mp3
 
 bin_tsv=${DATA}/data/test-vad-wav_more.tsv
 

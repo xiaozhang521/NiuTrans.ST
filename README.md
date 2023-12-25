@@ -87,6 +87,23 @@ make -j 32
 | Whisper (beam=2) | 1795 | 13136 |
 | Our (beam=2)     | 1994 | 13932 |
 
+----
+- `测试音频`: long_bbc.mp3
+- `时常`: 30s
+- `音频内容`: Live from London, this is BBC News. Britain's former Prime Minister Boris Johnson apologises for the pain and loss suffered in the UK during the coronavirus pandemic. Can I just say how glad I am to be at this inquiry and how sorry I am for the pain and the loss and the suffering. Heavy fighting is taking place across Gaza as Israeli tanks close in on three areas of
+- `前处理`: pad到30s的
+- `batch`: 1, `beam`: 1
+- `GPU`: 3090
+
+**循环10次耗时 (ms)**
+
+| 模型               | tiny | large |
+|------------------|------|-------|
+| Whisper          | -    | 31389 |
+| Our              | -    | 25819 |
+| Whisper (beam=2) | -    | 34225 |
+| Our (beam=2)     | -    | 31716 |
+
 ## 报错
 
 ```sh

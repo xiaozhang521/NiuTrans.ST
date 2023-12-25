@@ -16,7 +16,8 @@
 
 
  /*
- * $Created by: Yuhao Zhang (yoohao.zhang@gmail.com) 2023-09-19
+ * $Created by: Yuhao
+  Zhang (yoohao.zhang@gmail.com) 2023-09-19
  */
 
 #ifndef __VOCAB_S2T__

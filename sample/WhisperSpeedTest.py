@@ -47,6 +47,7 @@ def load_audio(file: str, sr=16000):
     return np.frombuffer(out, np.int16).flatten().astype(np.float32) / 32768.0
 
 if __name__ == '__main__':
+    # 环境在115上,conda activate whisper
     # path="/home/gaochenghao/data/whisper_model"
     # model_type="tiny"
 
@@ -55,21 +56,23 @@ if __name__ == '__main__':
     model = whisper.load_model("large-v2") # tiny large-v2
 
     # load audio and pad/trim it to fit 30 seconds
-    audio = load_audio("/data/zhangyuhao/librispeech/LibriSpeech/test-clean/672/122797/672-122797-0000.flac")
+    #audio = load_audio("/data/zhangyuhao/librispeech/LibriSpeech/test-clean/672/122797/672-122797-0000.flac")
+    audio = load_audio("/home/gaochenghao/data/NiuTransData/data/long_bbc.mp3")
     audio = whisper.pad_or_trim(audio)
 
     # make log-Mel spectrogram and move to the same device as the model
     mel = whisper.log_mel_spectrogram(audio).to(model.device)
 
     # detect the spoken language
-    _, probs = model.detect_language(mel)
-    print(f"Detected language: {max(probs, key=probs.get)}")
+    # _, probs = model.detect_language(mel)
+    # print(f"Detected language: {max(probs, key=probs.get)}")
     options = whisper.DecodingOptions(beam_size=2)
 
     # decode the audio
     time_start = time.time()
     torch.cuda.synchronize()
-    for i in range(1):
+    print("predict...")
+    for i in range(10):
         result = whisper.decode(model, mel, options)
         # print the recognized text
         print(result.text)

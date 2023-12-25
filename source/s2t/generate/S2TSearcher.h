@@ -70,6 +70,9 @@ namespace s2t {
         /* initialize the start symbols */
         void InitStartSymbols(S2TConfig& config);
 
+        /* initialize the prompt symbols */
+        void InitPromptSymbols();
+
         /* initialize the suppress symbols */
         void InitSuppressSymbols(S2TConfig& config, int* tokens=NULL, const int num=0);
 
@@ -79,7 +82,7 @@ namespace s2t {
         /* search for the most promising states */
         void Search(S2TModel* model, XTensor& input, XTensor& padding, IntList** outputs);
 
-        XTensor Suppress(XTensor& input);
+        XTensor Suppress(XTensor& input, bool isBegin=FALSE);
 
         XTensor Predict(XTensor& tokens, XTensor& logits, XTensor* sumLogprobs=NULL);
 
@@ -129,7 +132,7 @@ namespace s2t {
             XTensor& inputEnc, XTensor& paddingEnc, int batchSize, bool isStart,
             XTensor& reorderState, bool needReorder, int nstep);
 
-        XTensor Suppress(XTensor& input);
+        XTensor Suppress(XTensor& input, bool isBegin=FALSE);
 
     };
 
@@ -201,6 +204,9 @@ namespace s2t {
 
         /* initialize the start symbols */
         void InitStartSymbols(S2TConfig& config);
+
+        /* initialize the prompt symbols */
+        void InitPromptSymbols();
 
         /* initialize the suppress symbols */
         void InitSuppressSymbols(S2TConfig& config, int* tokens = NULL, const int num = 0);

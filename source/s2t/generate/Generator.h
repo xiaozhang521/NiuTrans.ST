@@ -26,6 +26,8 @@
 #ifndef __TRANSLATOR_S2T__
 #define __TRANSLATOR_S2T__
 
+#include "../Fbank.h"
+#include "../FeatureWindow.h"
 #include "../S2TModel.h"
 #include "../../nmt/translate/Searcher.h"
 #include "S2TSearcher.h"
@@ -54,6 +56,8 @@ namespace s2t
         /* output buffer */
         XList* outputBuf;
 
+        OfflineFeatureTpl<FbankComputer>* oft;
+
     private:
         /* translate a batch of sequences */
         XTensor DecodingBatch(XTensor& batchEnc, XTensor& paddingEnc, IntList& indices);
@@ -67,11 +71,13 @@ namespace s2t
         /* de-constructor */
         ~Generator();
 
-        ///* initialize the translator */
-        void Init(S2TConfig& myConfig, S2TModel& myModel);
+        /* initialize the translator */
+        void Init(S2TConfig* myConfig, S2TModel* myModel, bool offline = true);
 
         /* the generate function */
         bool Generate();
+
+        void Interact(char *language, char *file, bool offline = false);
 
         bool TestInference();
 

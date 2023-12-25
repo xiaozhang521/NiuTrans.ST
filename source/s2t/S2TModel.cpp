@@ -106,10 +106,10 @@ namespace s2t
     initialize the model
     >> myConfig - configuration of the model
     */
-    void S2TModel::InitModel(S2TConfig& myConfig)
+    void S2TModel::InitModel(S2TConfig* myConfig)
     {
         std::cout << "----- S2TModel Init -----" << std::endl;
-        config = &myConfig;
+        config = myConfig;
         devID = config->common.devID;
 
         /* configurations for the model */
@@ -422,13 +422,10 @@ namespace s2t
             }
         }
 
-        for (int i = 0; i < params.Size(); i++){
+        for (int i = 0; i < params.Size(); i++) {
             params[i]->BinaryRead(file);
-            params[i]->enableGrad = false;
         }
-
-
-
+            
         double elapsed = GetClockSec() - startT;
         LOG("model loaded (took %.1fs)", elapsed);
 

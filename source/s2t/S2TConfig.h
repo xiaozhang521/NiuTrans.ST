@@ -32,6 +32,18 @@
 using namespace std;
 using namespace nts;
 using namespace nmt;
+#ifndef INT_TO_int
+#define INT_TO_int
+#define INT16 int16_t
+#define INT32 int32_t
+#define INT64 int64_t
+#define UINT16 int16_t
+#define UINT32 uint32_t
+#define UINT64 uint64_t
+#define UINT uint32_t
+#define TRUE true
+#define FALSE false
+#endif
 
 /* the s2t namespace */
 namespace s2t
@@ -89,11 +101,58 @@ namespace s2t
 
     };
 
+    /* Feature extraction config*/
+    class ExtractionConfig : public XConfig {
+    public:
+
+        bool useEnergy;
+        float energyFloor;
+        bool rawEnergy;
+        bool htkCompat;
+        bool useLogFbank;
+        bool usePower;
+        bool oneSide;
+        char inputAudio[MAX_PATH_LEN];
+
+        float sampFreq;
+        float frameShiftMs;
+        float frameLengthMs; 
+        float chunkLengthMs;
+        float dither;  
+        float preemphCoeff;
+        bool removeDcOffset;
+        char windowType[MAX_NAME_LEN]; 
+        bool roundToPowerOfTwo;
+        float blackmanCoeff;
+        bool snipEdges;
+        bool allowDownsample;
+        bool allowUpsample;
+        int maxFeatureVectors;
+        int torchPaddingLength; 
+        char padMod[MAX_NAME_LEN];
+
+        INT32 numBins;
+        float lowFreq;
+        float highFreq;
+        float vtlnLow; 
+        float vtlnHigh; 
+        bool debugMel;
+        bool htkMode;
+        char customFilter[MAX_PATH_LEN];
+
+    public:
+        void Load(int argsNum, const char** args);
+
+    };
 
     /* configuration of the s2t project  */
     class S2TConfig : public NMTConfig
     {
     public:
+
+        /* Feature extraction config*/
+        ExtractionConfig extractor;
+
         /* model configuration */
         S2TModelConfig s2tmodel;
 

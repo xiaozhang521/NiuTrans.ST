@@ -24,7 +24,9 @@
 #include "../../XName.h"
 #include "../../XUtility.h"
 #include "Conv1D.h"
+#ifdef USE_CUDNN
 #include "cudnn.h"
+#endif
 
 
 namespace nts { // namespace nts(NiuTrans.Tensor)
@@ -170,6 +172,12 @@ void _Conv1DBase(const XTensor *input, const XTensor *weight, const XTensor *bia
                                            &beta,
                                            outputDesc, output->data));
 
+		cudaFree(workspace);
+        cudnnDestroyTensorDescriptor(inputDesc);
+        cudnnDestroyTensorDescriptor(outputDesc);
+        cudnnDestroyFilterDescriptor(kernelDesc);
+        cudnnDestroyConvolutionDescriptor(convDesc);
+        cudnnDestroy(cudnnHandle);
         //Compute the bias if necessary
         if (useBias) {
             int dimOp = 1;
