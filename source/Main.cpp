@@ -70,27 +70,27 @@ int main(int argc, const char **argv) {
 
     // generator.Generate();
 
+    clock_t start, finish;
+    double duration;
+    start = clock();
 
-    for (int i = 1; i <= 3; ++i) {
+    for (int i = 1; i <= 10; ++i) {
         char language[MAX_NAME_LEN];
         char file[MAX_PATH_LEN];
         strcpy(language, "zh");
-        string path="/home/data/NiuTransData/data/zh/"+ to_string(i)+".wav";
+        string path="/home/gaochenghao/data/NiuTransData/data/zh/"+ to_string(i)+".wav";
         // 使用 c_str() 将 std::string 转换为 C 风格字符串
         strncpy(file, path.c_str(), MAX_PATH_LEN - 1);
         // 确保字符串以 null 字符结尾
         file[MAX_PATH_LEN - 1] = '\0';
 
-        clock_t start, finish;
-        double duration;
-        start = clock();
         generator.Interact(language,file , FALSE);
-        cudaThreadSynchronize();
-        finish = clock();
-        duration = (double) (finish - start) / CLOCKS_PER_SEC;
-        std::cout << "Time: " << duration << endl;
 
     }
+    cudaThreadSynchronize();
+    finish = clock();
+    duration = (double) (finish - start) / CLOCKS_PER_SEC;
+    printf("Time:\t%.2fs\n", duration / 1000.0);
 
 
     printf("=============time_consume=============\n");

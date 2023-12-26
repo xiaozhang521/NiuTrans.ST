@@ -4,6 +4,8 @@
 `cudnn:` 8.9.5,
 `gcc:`8.5
 
+`注意`:gcc5.4在编译FeatureWindow相关cpp时会报错
+
 ```sh
 # 编译环境变量
 # gcc                                                                                   
@@ -47,7 +49,10 @@ make -j 32
 
 ``` sh
 # config_file里面使用绝对路径，防止出现加载失败
-./NiuTrans.NMT -config /home/gaochenghao/data/NiuTransData/test_config_file.txt
+./NiuTrans.ST -config /home/gaochenghao/data/NiuTransData/test_config_file.txt
+
+# mp3 to wav
+ffmpeg -i 10.mp3 -f wav -ac 1 -ar 16000 10.wav
 ```
 
 ## 速度测试
